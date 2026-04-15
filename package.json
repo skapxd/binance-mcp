@@ -65,6 +65,7 @@
         "@binance/connector-typescript": "0.3.16",
         "@binance/convert": "^1.0.1",
         "@binance/copy-trading": "^1.0.1",
+        "@binance/derivatives-trading-usds-futures": "^27.0.0",
         "@binance/dual-investment": "^2.0.0",
         "@binance/fiat": "^2.0.0",
         "@binance/mining": "^2.0.0",
@@ -82,6 +83,8 @@
         "figlet": "^1.8.0",
         "fs-extra": "^11.3.0",
         "ora": "^8.2.0",
-        "prompts": "^2.4.2"
+        "prompts": "^2.4.2",
+        "simple-statistics": "^7.8.9",
+        "trading-signals": "^7.4.3"
     }
 }

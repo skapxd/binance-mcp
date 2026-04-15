@@ -14,6 +14,7 @@ import { DualInvestment } from "@binance/dual-investment";
 import { Mining } from "@binance/mining";
 import { VipLoan } from "@binance/vip-loan";
 import { Staking } from "@binance/staking";
+import { DerivativesTradingUsdsFutures } from "@binance/derivatives-trading-usds-futures";
 
 import { ensureConfig } from "./validator.js";
 
@@ -53,3 +54,8 @@ export const dualInvestmentClient = createProtectedClient(new DualInvestment({ c
 export const miningClient = createProtectedClient(new Mining({ configurationRestAPI }));
 export const vipLoanClient = createProtectedClient(new VipLoan({ configurationRestAPI }));
 export const stakingClient = createProtectedClient(new Staking({ configurationRestAPI }));
+
+// Futures uses a different base URL (fapi.binance.com). Let the SDK default it by
+// not passing basePath.
+const futuresRestAPI = { apiKey: API_KEY ?? "", apiSecret: API_SECRET ?? "" };
+export const usdsFuturesClient = createProtectedClient(new DerivativesTradingUsdsFutures({ configurationRestAPI: futuresRestAPI }));
