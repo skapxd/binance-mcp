@@ -162,6 +162,90 @@ Claude presenta **siempre mínimo 2 estrategias alternativas** con pros/contras.
 **Lógica:** entrar escalonado desde el pico hacia arriba, capturar la reversión cuando el momentum se agota.
 **Horizonte:** máximo 1-1.5 días.
 
+#### ⚡ Paso previo obligatorio: clasificar el tipo de pump
+
+Antes de elegir la estructura de entrada, identificar qué tipo de pump es.
+La estrategia de entrada es diferente en cada caso.
+
+---
+
+#### Tipo A — Pump gradual (múltiples velas 4h)
+
+**Identificación:**
+- 3 o más velas 4h verdes con volumen creciendo progresivamente
+- Ninguna vela individual supera 5-7x el volumen promedio reciente
+- El precio llegó al pico en horas, no en minutos
+- Ejemplo: ORDI (+182% en múltiples velas 4h progresivas)
+
+**Patrón de precio después del pico:**
+- Corrección inicial → rebote técnico → segunda bajada más fuerte
+- El rebote da tiempo de entrar SHORT LIMIT por encima antes de la caída principal
+
+**Estrategia de entrada:**
+```
+── ESPERAR REBOTE — entrar en el techo del rebote ──
+  Identificar el rebote con 2 velas 15m rojas consecutivas (confirmación bajista)
+  Entrada 1: precio pico o +2%  → 40% del capital  ← si rebota cerca del pico
+  Entrada 2: precio pico +5%    → 35% del capital  ← si hay spike en el rebote
+  Entrada 3: precio pico +10%   → 25% del capital  ← solo si el rebote se extiende
+
+  Plazo para que se llenen: 1-3 horas. Si no llenan → revisar si el pump continúa.
+```
+
+---
+
+#### Tipo B — Pump de vela única (1 vela 4h explosiva)
+
+**Identificación:**
+- UNA sola vela 4h con volumen ≥ 10x el promedio de las últimas 5-8 velas
+- La vela puede ser +20% hasta +80% en una sola barra 4h
+- Sin acumulación previa — el movimiento fue instantáneo
+- Ejemplo: PRLUSDT (vela 4h +54% con 46M USDT vs promedio 1-2M)
+
+**Patrón de precio después del pico:**
+- Colapso directo sin rebote técnico significativo
+- Entrar LIMIT esperando el rebote = las órdenes nunca se llenan
+
+**Estrategia de entrada — dos caminos:**
+
+```
+── CAMINO B1 — Pre-colocar en el pico (si el pump aún no terminó) ──
+  Condición: RSI 1h > 90 Y funding positivo (> +0.05%)
+  Acción: SELL LIMIT en el precio actual o +2-3% antes de que comience la caída
+  Ventaja: si el precio sube un poco más, la orden se llena en el techo
+  Riesgo: si el pump continúa, el SL actúa
+
+── CAMINO B2 — MARKET en la primera señal de reversión ──
+  Condición: 2 velas 15m rojas consecutivas con volumen ≥ promedio
+              + precio ya bajó 2-3% desde el pico
+  Acción: entrada MARKET inmediata
+  Ventaja: confirmación de reversión antes de entrar
+  Riesgo: peor precio de entrada vs B1
+
+  ⚠️ NO esperar un rebote para entrar LIMIT — en pump de vela única el rebote
+     generalmente no existe o es < 1-2%. Las LIMIT por encima nunca se llenan.
+```
+
+**Señal de alerta temprana (para detectar antes que pique):**
+- Una vela 15m con volumen > 3x el promedio = posible pump de vela única en formación
+- Si en la siguiente vela 15m el volumen sigue alto y el precio acelera → activar Camino B1
+
+---
+
+#### Tabla comparativa: ¿cuál tipo es?
+
+| Señal | Tipo A (gradual) | Tipo B (vela única) |
+|---|---|---|
+| Cantidad de velas 4h verdes en el pump | 3 o más | 1 |
+| Volumen pico vs promedio | 2-5x | ≥ 10x |
+| Hay rebote después del pico | Sí, de 1-3h | No, o < 1-2% |
+| Estrategia de entrada | LIMIT en el rebote | B1: LIMIT en el pico / B2: MARKET |
+| Tiempo disponible para analizar | 2-6 horas | 15-30 minutos |
+
+**Si hay duda sobre el tipo:** tratar como Tipo B (más conservador — evita entradas que nunca llenan).
+
+---
+
 ```
 Par:              XXXUSDT
 Tipo:             SHORT
@@ -169,10 +253,9 @@ Capital:          $100 USDT
 Leverage:         3x
 Exposición total: $300 USDT
 
-── ENTRADAS (SELL LIMIT — precios POR ENCIMA del precio actual) ──
-  Entrada 1: precio pico o +2%  → 40% del capital  ← primera en llenarse
-  Entrada 2: precio pico +5%    → 35% del capital  ← si hay spike adicional
-  Entrada 3: precio pico +10%   → 25% del capital  ← solo si pump se extiende
+── ENTRADAS según tipo de pump (ver tabla arriba) ──
+  Tipo A: SELL LIMIT en el rebote, POR ENCIMA del precio actual
+  Tipo B: SELL LIMIT en el pico (B1) o MARKET en primera vela roja (B2)
 
   ⚠️ SELL LIMIT por debajo del precio actual = se llena inmediatamente (MARKET).
      Siempre colocar por encima del precio actual para que quede pendiente.
@@ -411,3 +494,4 @@ Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
 | Abr 2026 | **Si SL o TS activa con entradas pendientes → cancelarlas inmediatamente.** Una entrada que se llena después de cerrar la posición abre nueva exposición no controlada. |
 | Abr 2026 | **Verificar siempre Isolated antes de ejecutar.** Cross expone todo el balance. |
 | Abr 2026 | **Precision error (-1111): usar cantidades enteras o con mínimos decimales.** Binance rechaza `16.600` — usar `17`. |
+| Abr 2026 | **Pump de vela única (PRLUSDT): LIMIT en el rebote nunca se llena.** Vela 4h +54% con 46M vs 1-2M promedio → colapso directo sin rebote. Estrategia: B1 (LIMIT en el pico con RSI >90) o B2 (MARKET en primera vela roja). Las entradas escalonadas por encima esperando rebote = capital inmovilizado, oportunidad perdida. |

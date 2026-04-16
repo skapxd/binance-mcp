@@ -48,6 +48,41 @@ La herramienta principal de ejecución. Reemplaza los scripts Bash manuales.
 
 ---
 
+### `BinanceCustomFuturesAnalyze` — Análisis completo de símbolo
+
+Reemplaza los scripts node manuales de análisis. Un solo llamado devuelve todo lo necesario para evaluar una oportunidad Pilar 2.
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `symbol` | string | Par a analizar, ej. `ORDIUSDT` |
+
+**Qué devuelve:** precio, cambio 24h, pump desde mínimos, distancia del pico, RSI 1h, funding (último + historial 4 períodos + interpretación del semáforo), orderbook bid/ask ratio, tendencia de volumen 4h, velas 4h (últimas 5) y 15m (últimas 6).
+
+---
+
+### `BinanceCustomFuturesAccount` — Estado de la cuenta
+
+Estado completo de la cuenta en un llamado. Sin parámetros.
+
+**Qué devuelve:** balance USDT disponible y total, PnL abierto, todas las posiciones abiertas (símbolo, dirección, tamaño, entrada, mark price, PnL, ROI%, precio de liquidación), todas las órdenes abiertas.
+
+---
+
+### `BinanceCustomFuturesBotStatus` — Estado de bot grid (Pilar 1)
+
+Para el chequeo diario de bots activos.
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `symbol` | string | Par del bot, ej. `SOLUSDT` |
+| `rangeMin` | number | Límite inferior del rango |
+| `rangeMax` | number | Límite superior del rango |
+| `stopLoss` | number | Precio de stop loss |
+
+**Qué devuelve:** precio actual, % en rango, distancia al stop/techo/piso, funding, y alertas automáticas si el precio está al <15% de un límite o si el funding se volvió negativo.
+
+---
+
 ### `BinanceCustomGridCandidateAnalyzer` — Análisis de candidatos para grids
 
 Automatiza el análisis que antes se hacía manualmente con scripts.

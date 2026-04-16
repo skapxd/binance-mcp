@@ -68,8 +68,9 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | LYNUSDT | Short pump | 2026-04-16 | — | — | 👁️ En radar | +35% 24h. Funding ✅ +0.05%. Pero RSI 43 (neutral) y pump solo 55% — no sobreextendido. Esperar rebote a zona $0.082–$0.087 con RSI >75 para evaluar entrada short. Fase 4-5 actual. |
 | GUAUSDT | Short pump | 2026-04-15 | $0.57–$0.62 | Short grid LIMIT + stop | 📋 Desactualizado | Re-analizar si el usuario lo solicita. |
 | TRADOORUSDT | Short pump | 2026-04-16 | $7.20–$7.60 | 2 entradas SHORT LIMIT + 2 TPs + SL manual | ❌ Descartado | Precio bajó a $6.23. Pump total solo 24% desde mínimos — lejos de las condiciones (≥80%). Sin setup. |
-| BASEDUSDT | Short pump | 2026-04-16 | $0.260–$0.290 | 3 entradas SHORT LIMIT + TP fijo + SL + TS | 👁️ En radar | +306% desde mínimos. Funding ✅ +0.19%. RSI 85. Ya corrigió 32% del pico ($0.327→$0.222). Esperar rebote a $0.265 con RSI >78 y volumen bajo. **Alarma puesta en $0.265 ↑** |
-| ORDIUSDT | Short pump | 2026-04-16 | $8.80–$9.20 | 3 entradas SHORT LIMIT + TP fijo + SL + TS | 👁️ En radar | Pump +225%. Precio $8.44, pico $9.70. Corrección activa. Esperar rebote a $8.85 con RSI >75. **Alarma puesta en $8.85 ↑** |
+| BASEDUSDT | Short pump | 2026-04-16 | $0.225–$0.265 | 3 entradas SHORT LIMIT + SL + TS | ⛔ Descartado | Órdenes colocadas y canceladas. Precio cayó de $0.327 a $0.156 sin rebote. Pump terminado. |
+| ORDIUSDT | Short pump | 2026-04-16 | $9.20–$9.75 | 3 entradas SHORT LIMIT + SL + TS | 👁️ En radar | Pump +215%. Precio $8.47, pico $9.70. En corrección. Si rebota a $9.20+ con RSI >80 → reentrada. |
+| PRLUSDT | Short pump | 2026-04-16 | $0.385–$0.420 | 3 entradas SHORT LIMIT + SL + TS | ⛔ Descartado | Pump +151%. Dos intentos de entrada fallidos. 1er intento ($0.410–$0.450): precio nunca rebotó. 2do intento ($0.385–$0.420): precio colapsó a $0.337 sin rebote. Causa: pump de vela única (4h +54%, 46M vs 1-2M promedio) → colapso directo sin rebote. Estrategia errónea: LIMIT esperando rebote en pump de tipo B. |
 
 ---
 
@@ -81,7 +82,8 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | TRADOOR | Short manual | +53.56 USDT (+26.78%) en 27hs | ~12 Abr 2026 | Operación exitosa. Confirma estrategia short en pumps. |
 | BTCUSDT | Grid Neutral 10x | Desarmado (salió del rango) | ~14 Abr 2026 | 10x excesivo. BTC superó 74,500. Lección: max 3x-5x. |
 | ETHUSDT | Grid Neutral 10x | +23.87 USDT, desarmado | ~14 Abr 2026 | Rango correcto, apalancamiento alto. ETH rompió al alza. |
-| ORDIUSDT | Short manual | ~-$0.07 USDT (pérdida mínima) | 16 Abr 2026 | Pump +182%. 2 entradas llenadas ($9.00 y $9.50), 3era pendiente ($10.00). Trailing stop activado en movimiento alcista antes de que entrara la 3era orden — cerró la posición con pérdida mínima. El TS funcionó correctamente pero el precio de activación era demasiado bajo. Lección: activar TS más cerca del pico para dar margen a todas las entradas. |
+| ORDIUSDT | Short — 1er intento | ~-$0.07 USDT (pérdida mínima) | 16 Abr 2026 | Pump +182%. 2 entradas llenadas ($9.00 y $9.50), 3era pendiente ($10.00). TS activado en movimiento alcista antes de que entrara la 3era orden. TS correcto pero activación demasiado baja. |
+| ORDIUSDT | Short — 2do intento | **+$8.76 USDT** | 16 Abr 2026 | 1 entrada @ $9.20 (13 ORDI). Cierre TS @ $8.526. Entradas 2 y 3 canceladas manualmente antes del cierre. Protocolo SL + TS correcto aplicado. Ganancia neta confirmada por API. |
 
 ---
 
@@ -109,6 +111,9 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | Abr 2026 | **Frenar al usuario cuando entra apurado siguiendo el precio.** Una vela roja no es reversión. Esperar mínimo 2 velas 15m consecutivas bajistas con volumen antes de confirmar entrada short. |
 | Abr 2026 | **Trailing Stop para SHORT: activar SIEMPRE más arriba del precio de entrada más alto.** El TS en SHORT se activa cuando el precio sube X% desde el punto más bajo tocado. Si el precio nunca baja (sigue subiendo), el TS cierra la posición en pérdida. La clave: activar el TS en un precio cercano al pico (ej. 3-5% bajo el máximo), NO en el precio de entrada. Así si el precio sube antes de que entren todas las órdenes, el TS tiene margen suficiente. |
 | Abr 2026 | **Protocolo post-ejecución SHORT: SL + TS simultáneos.** Después de que Claude coloca las entradas LIMIT, el usuario debe configurar en la UI de Binance AMBAS protecciones al mismo tiempo: (1) Stop Loss fijo en el precio de invalidación y (2) Trailing Stop activado cerca del pico con callback 5-8%. El SL protege si hay un spike rápido, el TS captura la ganancia en la bajada. Ver protocolo detallado en `docs/protocolo-operativo.md`. |
+| Abr 2026 | **Cancelar entradas pendientes cuando el TS se activa.** Si el TS cierra la posición y quedan LIMIT entries abiertas, esas órdenes abren una nueva posición sin SL ni TS configurados. Cancelar siempre desde "Órdenes abiertas" antes o apenas se activa el TS. Confirmado en ORDI 2do intento — cancelar las entradas 2 y 3 fue la decisión correcta. |
+| Abr 2026 | **Con 1 sola entrada y TS bien configurado, la estrategia funciona limpiamente.** ORDI 2do intento: 1 entrada @ $9.20, TS activación $8.50 callback 6%, cierre @ $8.526, +$8.76 USDT. No siempre hace falta llenar las 3 entradas para que la operación sea rentable. |
+| Abr 2026 | **Pump de vela única (Tipo B): LIMIT esperando rebote = órdenes que nunca se llenan.** PRLUSDT vela 4h +54% con 46M vs 1-2M promedio → colapso directo a $0.337 sin rebote. Dos intentos de LIMIT fallidos. En este tipo de pump: B1 = LIMIT en el pico cuando RSI >90, o B2 = MARKET en primera vela 15m roja. Ver protocolo Tipo A vs Tipo B en `docs/protocolo-operativo.md`. |
 
 ---
 
