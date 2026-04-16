@@ -256,6 +256,60 @@ confirmado la estrategia. Es la última verificación antes de tocar capital rea
 6. Usuario confirma que colocó el SL manual
 7. Registrar en watchlist
 
+### Protocolo de protecciones manuales — después de que Claude coloca las órdenes
+
+Una vez que Claude confirma que las LIMIT entries fueron creadas, el usuario configura
+**ambas protecciones al mismo tiempo** en la UI de Binance antes de hacer cualquier otra cosa.
+
+```
+═══════════════════════════════════════════════════════════
+ PASO OBLIGATORIO: configurar SL + TS en la UI de Binance
+═══════════════════════════════════════════════════════════
+
+1. Ir a: Futures → pestaña "Positions"
+2. Tocar la posición abierta → "Edit"
+
+ ┌─ STOP LOSS (fijo) ──────────────────────────────────────┐
+ │  Precio = precio de invalidación de la estrategia       │
+ │  Tipo: Stop Market (no Stop Limit — en pumps volátiles  │
+ │  el Stop Limit puede no llenarse)                       │
+ │  Propósito: protección de capital si el precio sube     │
+ │  rápido sin darte tiempo a reaccionar                   │
+ └─────────────────────────────────────────────────────────┘
+
+ ┌─ TRAILING STOP ─────────────────────────────────────────┐
+ │  Precio de activación = 3-5% POR DEBAJO del pico/máximo │
+ │  (NO en el precio de entrada — eso es el error ORDI)    │
+ │  Callback = 5-8% (qué tanto puede rebotar antes de      │
+ │  cerrar la posición)                                    │
+ │  Propósito: captura la ganancia cuando el precio baja   │
+ └─────────────────────────────────────────────────────────┘
+
+Ejemplo real (ORDI pico $9.70, entradas $9.00-$9.50):
+  SL:  $10.20 (Stop Market)
+  TS:  Activación $9.40 | Callback 6%
+       → se activa si precio baja a $9.40 y luego sube 6%
+       → captura ganancia si precio baja más
+═══════════════════════════════════════════════════════════
+```
+
+**Claude confirma** que el usuario colocó ambas protecciones antes de dar la operación por activa.
+
+#### Por qué SL + TS y no solo uno de los dos
+
+| Solo SL | Solo TS | SL + TS juntos |
+|---|---|---|
+| No captura la ganancia automáticamente | Si el precio sube antes de bajar, cierra en pérdida | ✅ El SL limita la pérdida máxima. El TS captura la ganancia. |
+| Hay que estar mirando para cerrar | No hay techo de pérdida si el precio sube mucho | ✅ La operación se gestiona sola en ambas direcciones. |
+
+#### Lección ORDI (Abr 2026)
+
+El trailing stop NO fue un error — funcionó exactamente como debe.
+El problema: el precio de activación era $8.50 (mismo que la entrada), no cerca del pico $9.70.
+Cuando el precio subió brevemente antes de que entrara la 3era orden, el TS se activó desde ese nivel bajo.
+
+**Regla:** el precio de activación del TS siempre debe estar entre el **pico del pump y la primera entrada**, no en la primera entrada.
+
 ### Durante la operación
 - Claude verifica precio y estado cuando el usuario lo consulta
 - Si el precio se acerca al nivel de riesgo → Claude avisa y propone cerrar con MARKET

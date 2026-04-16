@@ -164,6 +164,31 @@ Toda estrategia se presenta dividida en DOS bloques:
 Claude NO ejecuta su parte hasta que el usuario confirma que entendió ambas partes.
 Ver formato exacto en `docs/protocolo-operativo.md` → Paso 5.
 
+#### Protocolo de protecciones post-ejecución (SHORT) — OBLIGATORIO
+
+Después de confirmar que las entradas LIMIT fueron creadas, Claude muestra SIEMPRE:
+
+```
+📋 CONFIGURAR AHORA en Binance UI → Futures → Positions → [PAR] → Edit:
+
+  ① Stop Loss (Stop Market):
+     Precio: $XX.XX  ← precio de invalidación de la estrategia
+     Tipo: Stop Market (no Stop Limit — en pumps el SL puede no llenarse)
+
+  ② Trailing Stop:
+     Activación: $XX.XX  ← 3-5% POR DEBAJO del pico del pump
+                            NO en el precio de entrada (lección ORDI)
+     Callback:   6%      ← cuánto puede rebotar antes de cerrar
+
+  Lógica:
+  - Si precio sube más del stop → el SL cierra (pérdida limitada)
+  - Si precio baja hasta activación y luego sube 6% → TS cierra (ganancia asegurada)
+  - El TS solo captura ganancia cuando el precio YA BAJÓ primero
+```
+
+**Regla ORDI (Abr 2026):** activación del TS siempre entre el pico y la primera entrada,
+nunca en la entrada misma. Si se pone en la entrada y el precio sube antes de bajar → cierra sin ganancia.
+
 ### Ejecución de órdenes
 
 #### Identificación de entorno — OBLIGATORIO antes de cada ejecución
