@@ -48,6 +48,8 @@ yarn.lock
 
 .env*
 dist/
+config.json
+.mcp.json
 src/tools/binance-spot/a.sh
 a.sh
 src/tools/binance-spot/a.txt
