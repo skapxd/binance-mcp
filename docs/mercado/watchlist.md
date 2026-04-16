@@ -79,6 +79,7 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | TRADOOR | Short manual | +53.56 USDT (+26.78%) en 27hs | ~12 Abr 2026 | Operación exitosa. Confirma estrategia short en pumps. |
 | BTCUSDT | Grid Neutral 10x | Desarmado (salió del rango) | ~14 Abr 2026 | 10x excesivo. BTC superó 74,500. Lección: max 3x-5x. |
 | ETHUSDT | Grid Neutral 10x | +23.87 USDT, desarmado | ~14 Abr 2026 | Rango correcto, apalancamiento alto. ETH rompió al alza. |
+| ORDIUSDT | Short manual | ~-$0.07 USDT (pérdida mínima) | 16 Abr 2026 | Pump +182%. 2 entradas llenadas ($9.00 y $9.50), 3era pendiente ($10.00). Trailing stop activado en movimiento alcista antes de que entrara la 3era orden — cerró la posición con pérdida mínima. El TS funcionó correctamente pero el precio de activación era demasiado bajo. Lección: activar TS más cerca del pico para dar margen a todas las entradas. |
 
 ---
 
@@ -104,6 +105,8 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | Abr 2026 | **La app móvil de Binance tiene mínimo notional ~$1,000 para coins de precio muy bajo**, aunque la API acepta desde $5. Si el usuario no llega a ese mínimo no puede colocar el SL manual → trade inviable. Verificar siempre antes de proponer. LYNUSDT descartado por esto ($59 disponibles vs $1,000 mínimo UI). |
 | Abr 2026 | **La API de tickers devuelve contratos en SETTLING** — pares que Binance está cerrando, no aparecen en la UI del usuario y no aceptan nuevas órdenes. Siempre cruzar con `exchangeInfo` y filtrar solo `status=TRADING` antes de mostrar candidatos. ALPACAUSDT y BNXUSDT eran SETTLING.
 | Abr 2026 | **Frenar al usuario cuando entra apurado siguiendo el precio.** Una vela roja no es reversión. Esperar mínimo 2 velas 15m consecutivas bajistas con volumen antes de confirmar entrada short. |
+| Abr 2026 | **Trailing Stop para SHORT: activar SIEMPRE más arriba del precio de entrada más alto.** El TS en SHORT se activa cuando el precio sube X% desde el punto más bajo tocado. Si el precio nunca baja (sigue subiendo), el TS cierra la posición en pérdida. La clave: activar el TS en un precio cercano al pico (ej. 3-5% bajo el máximo), NO en el precio de entrada. Así si el precio sube antes de que entren todas las órdenes, el TS tiene margen suficiente. |
+| Abr 2026 | **Protocolo post-ejecución SHORT: SL + TS simultáneos.** Después de que Claude coloca las entradas LIMIT, el usuario debe configurar en la UI de Binance AMBAS protecciones al mismo tiempo: (1) Stop Loss fijo en el precio de invalidación y (2) Trailing Stop activado cerca del pico con callback 5-8%. El SL protege si hay un spike rápido, el TS captura la ganancia en la bajada. Ver protocolo detallado en `docs/protocolo-operativo.md`. |
 
 ---
 
