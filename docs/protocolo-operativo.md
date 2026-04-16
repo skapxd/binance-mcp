@@ -1,9 +1,7 @@
 # Protocolo Operativo — Del Análisis a la Ejecución
 
-> Este documento define el proceso estándar completo para evaluar, validar
-> y ejecutar cualquier estrategia. Seguirlo garantiza que nunca se opere
-> con capital real sin haber validado cada paso antes.
->
+> Este documento es la referencia operativa completa del sistema.
+> CLAUDE.md apunta aquí para todos los detalles de ejecución.
 > Última actualización: 2026-04-16
 
 ---
@@ -13,13 +11,13 @@
 ```
 1. ANÁLISIS DE MERCADO
        ↓
-2. DISEÑO DE ESTRATEGIA
+2. DISEÑO DE ESTRATEGIA  (SHORT o LONG — estructuras diferentes)
        ↓
 3. VALIDACIÓN EN TESTNET
        ↓
-4. REVISIÓN Y AJUSTE
+4. REVISIÓN FINAL
        ↓
-5. EJECUCIÓN EN PRODUCCIÓN
+5. EJECUCIÓN EN PRODUCCIÓN (modelo híbrido)
 ```
 
 ---
@@ -29,45 +27,78 @@
 **Cuándo:** cuando el usuario pide un escaneo o quiere evaluar un símbolo.
 
 **Qué hace Claude:**
-1. Obtener todos los tickers de futuros (`/fapi/v1/ticker/24hr`)
-2. Filtrar candidatos por categoría:
-   - **Pumpeadas** (short): cambio 24h > 20%, volumen > $3M
-   - **Laterales** (grid): cambio 24h entre -3% y +3%, volumen > $20M
-   - **Con momentum** (long): volumen creciendo, cambio positivo moderado
-3. Para cada candidato filtrado, analizar en detalle:
+1. Obtener todos los tickers de futuros (`/fapi/v1/ticker/24hr`) + `exchangeInfo` en paralelo
+2. Cruzar ambos y filtrar solo `status=TRADING` — la API devuelve también contratos SETTLING que no aparecen en la UI del usuario
+3. Consultar `availableBalance` de `/fapi/v2/balance` — mostrar capital disponible al inicio del reporte
+4. Filtrar candidatos por categoría:
+   - **Pumpeadas** (short): cambio 24h > 20%, volumen > $5M
+   - **Laterales** (grid): cambio 24h entre -3% y +3%, volumen > $10M
+   - **Con momentum** (long): volumen creciendo, RSI saliendo de zona 30-45, MACD girando positivo
+5. Para cada candidato filtrado, analizar en detalle:
    - RSI en 1h y 4h
    - MACD en 1h
    - ATR 4h (volatilidad)
-   - Funding rate últimas 8 lecturas → **ver checklist de shorts abajo**
+   - Funding rate: **siempre DOS fuentes** (ver semáforo abajo)
    - Orderbook ratio bid/ask
-   - Klines diarios últimos 14 días
-   - Volumen en el pico: ¿está cayendo (agotamiento) o sigue subiendo?
+   - Klines 4h últimas 6 velas + klines 15m últimas 8 velas
+   - Volumen por vela: ¿cayendo (agotamiento) o subiendo (momentum activo)?
 
-**Output esperado:** tabla clasificada con oportunidades y tipo de estrategia sugerida.
-Claude presenta **mínimo 2 opciones de estrategia** para que el usuario elija — nunca una sola propuesta.
+**Output esperado:** tabla clasificada. Claude presenta **mínimo 2 opciones de estrategia** y la opción "no operar".
 
-### ⛔ Checklist de VETO para shorts en pumps — en este orden exacto
+```
+💰 Capital disponible: $XX USDT
 
-**Paso 0 — Capital (primero siempre):**
+🔴 NO OPERAR ahora:
+  XXXUSDT +120% — funding negativo (-0.08%), squeeze activo
+  YYYUSDT +80%  — volumen subiendo, pump sin agotamiento
+
+⚠️ EN RADAR (señales mixtas o requiere más capital):
+  ZZZUSDT +65% — funding ✅ pero volumen aún no cae
+                  Requiere $XX para mínimo UI
+
+✅ SETUP VÁLIDO — propongo 2 estrategias:
+  WWWUSDT +90% — funding ✅ +0.19%, volumen cayó 70%, confirmación bajista activa
+  [A] Conservadora: ...
+  [B] Agresiva: ...
+```
+
+Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente.
+
+---
+
+### ⛔ Checklist de VETO para shorts en pumps — ejecutar en este orden
+
+**Paso 0 — Capital:**
 - Consultar `availableBalance` en `/fapi/v2/balance`
-- Calcular si el precio de la coin supera `1000 / (capital × 3)` — si no, mencionarla igual pero aclarar que requiere más fondos
-- Si capital < $20 → no hay trade posible, informar al usuario
+- Si capital < $20 → no hay trade posible
+- Verificar mínimo UI: `qty_min_UI = 1000 / precio_actual`. Si capital × 3 < qty_min_UI → usuario no puede colocar SL manual → trade inviable
 
 **Pasos 1-5 — Solo si el capital es suficiente:**
 
 | Condición | Señal requerida | Por qué |
 |---|---|---|
-| Funding rate | **Debe ser positivo** (> +0.05%) | Negativo = mercado ya está short = riesgo de squeeze. Aprendido en BIOUSDT: funding -0.82% y el precio siguió subiendo +15% |
+| Funding rate | **Debe ser positivo** (> +0.05%) | Negativo = mercado ya está short = riesgo de squeeze. Lección BIOUSDT: funding -0.82% → precio subió +15% |
 | Volumen en el pico | **Debe estar cayendo** vs velas anteriores | Si el volumen sigue alto, el pump no terminó |
-| RSI 1h | Debe mostrar divergencia bajista o estar > 85 **y cayendo** | RSI alto solo no alcanza si el momentum sigue |
-| MACD 1h | Debe estar girando o cruzando a la baja | MACD positivo creciente = pump activo |
-| Distancia desde mínimos | Pump debe ser ≥ 100% desde el inicio | Pumps menores tienen más probabilidad de continuar |
+| RSI 1h | > 85 **y cayendo**, o con divergencia bajista | RSI alto solo no alcanza si el momentum sigue |
+| MACD 1h | Girando o cruzando a la baja | MACD positivo creciente = pump activo |
+| Distancia desde mínimos | Pump ≥ 100% desde el inicio | Pumps menores tienen más probabilidad de continuar |
 
-**Si el funding es negativo → el mercado ya apostó contra el precio. Short squeeze activo. No operar short.**
+**Si el funding es negativo → NO operar short. Sin excepción.**
 
-### 📊 Leer la fase del pump en velas 4h
+### 📊 Semáforo de funding rate — siempre consultar DOS fuentes
 
-Antes de entrar short, identificar en qué fase está el pump:
+1. `lastFundingRate` en `/fapi/v1/premiumIndex` = último período cobrado. Puede estar desactualizado hasta 8hs.
+2. Historial en `/fapi/v1/fundingRate?limit=4` = últimos 4 períodos. Muestra la **tendencia real**.
+
+| Valor (tendencia) | Estado | Acción |
+|---|---|---|
+| > +0.05% y subiendo | ✅ | Longs pagando, sobreextensión real → apto para short |
+| ±0.05% | ⚠️ | Neutro → analizar el resto de señales antes de decidir |
+| < -0.05% o empeorando | ❌ | Shorts pagando, mercado ya apostó a la baja → NO shortear |
+
+Si el historial muestra -0.001% → -0.048% → -0.089%: situación peor de lo que el último valor sugiere, aunque el `lastFundingRate` parezca bajo.
+
+### 📊 Fases del pump — leer en velas 4h antes de entrar short
 
 ```
 Fase 1 — Arranque:    vela 4h verde +20%/+30%, volumen creciendo → NO shortear
@@ -80,16 +111,28 @@ Fase 5 — Rebote:      vela 4h verde con poco volumen            → EVALUAR: s
 ```
 
 Shortear en Fase 4 o 5 sin RSI alto = entrar en corrección normal, no en reversión.
-El mejor momento es cuando el rebote de Fase 5 lleva el RSI de vuelta a >75-80 con volumen bajo.
+El mejor momento: rebote de Fase 5 lleva el RSI de vuelta a >75-80 con volumen bajo.
 
-### ✅ Definición de "confirmación bajista" (cuándo se puede entrar)
+### ✅ Confirmación bajista — cuándo se puede entrar short
 
 No entrar solo porque el precio baja un poco. Confirmación requiere **al menos 2 de estos 3**:
 1. **2 velas 15m consecutivas en rojo** con cierre por debajo de la apertura anterior
-2. **Volumen en las velas rojas ≥ volumen promedio** de las últimas 4 velas (presión vendedora real)
+2. **Volumen en las velas rojas ≥ volumen promedio** de las últimas 4 velas
 3. **Precio rompe un soporte claro** — mínimo de la última hora o zona de consolidación previa
 
 Una sola vela roja no es confirmación. El usuario apurado siguiendo el precio = señal de esperar.
+
+### ✅ Checklist de ENTRADA para longs con momentum
+
+| Condición | Señal requerida |
+|---|---|
+| RSI 1h | Saliendo de zona 30-45, cruzando al alza |
+| MACD 1h | Cruzando la señal hacia arriba o girando positivo |
+| Volumen | Creciendo vs las últimas 4-6 velas — acumulación activa |
+| Funding | Neutro o ligeramente positivo (no sobreextendido) |
+| Contexto | Coin pequeña, sin posición dominante de mercado — más explosividad potencial |
+
+NO entrar long si el volumen no confirma. Muchos "cruces de RSI" son falsas señales sin volumen.
 
 ---
 
@@ -97,73 +140,141 @@ Una sola vela roja no es confirmación. El usuario apurado siguiendo el precio =
 
 **Cuándo:** después de identificar un candidato concreto **y haber pasado el checklist de veto del Paso 1.**
 
-**Regla nueva (aprendida en BIOUSDT, 2026-04-16):**
-Claude presenta **siempre mínimo 2 estrategias alternativas** con sus pros/contras. El usuario elige.
-Nunca proponer una sola opción como si fuera la única posible.
+Claude presenta **siempre mínimo 2 estrategias alternativas** con pros/contras. El usuario elige.
 
-**Estructura mínima que Claude debe definir por cada estrategia:**
+---
+
+### Estructura SHORT — pump sin fundamento
+
+**Lógica:** entrar escalonado desde el pico hacia arriba, capturar la reversión cuando el momentum se agota.
+**Horizonte:** máximo 1-1.5 días.
 
 ```
 Par:              XXXUSDT
-Tipo:             Long / Short / Neutral
-Capital:          $XX USDT
-Leverage:         Xx
-Exposición total: $XX USDT
+Tipo:             SHORT
+Capital:          $100 USDT
+Leverage:         3x
+Exposición total: $300 USDT
 
-Entradas (LIMIT orders):
-  Orden 1: precio, cantidad, % del capital
-  Orden 2: ...
+── ENTRADAS (SELL LIMIT — precios POR ENCIMA del precio actual) ──
+  Entrada 1: precio pico o +2%  → 40% del capital  ← primera en llenarse
+  Entrada 2: precio pico +5%    → 35% del capital  ← si hay spike adicional
+  Entrada 3: precio pico +10%   → 25% del capital  ← solo si pump se extiende
 
-Cierre con ganancia (LIMIT orders):
-  TP1: precio, % de la posición a cerrar
-  TP2: ...
+  ⚠️ SELL LIMIT por debajo del precio actual = se llena inmediatamente (MARKET).
+     Siempre colocar por encima del precio actual para que quede pendiente.
 
-Stop loss (LIMIT order monitoreada):
-  Stop: precio, acción = cerrar con MARKET si se acerca
+── TOMA DE GANANCIAS (BUY LIMIT — colocar SOLO después que entre la 1era orden) ──
+  TP1: precio pico −25%  → cerrar 50% de la posición
+  TP2: precio pico −40%  → cerrar el resto
 
-Precio de invalidación: si llega a $XX la tesis es incorrecta
+  ⚠️ No colocar TPs antes de tener posición abierta → error -2022 en Hedge Mode.
+
+── PROTECCIONES MANUALES (UI de Binance — configurar INMEDIATAMENTE después de las entradas) ──
+  ① Stop Loss (Stop Market):
+     Precio: 8-10% por encima de la última entrada
+     Tipo: Stop Market (no Stop Limit — en pumps volátiles puede no llenarse)
+
+  ② Trailing Stop:
+     Activación: 3-5% POR DEBAJO del pico del pump
+                 NO en el precio de entrada (lección ORDI — cierra antes de tiempo)
+     Callback: 6-8%
+     Cuándo activar: después de confirmar que todas las entradas posibles ya llenaron
+                     o pasaron 30 minutos desde la ejecución
+
+  Lógica combinada:
+  - Si precio sube después de entrar → SL cierra (pérdida limitada)
+  - Si precio baja → TPs fijos capturan 25% y 40% de caída
+  - Si precio baja más allá de los TPs → TS sigue capturando el movimiento
+
+Precio de invalidación: X% por encima de la última entrada
 Pérdida máxima estimada: $XX USDT (XX% del capital)
 ```
 
-**Regla:** Claude no propone sin estos datos completos.
-**Regla:** el usuario confirma explícitamente antes de pasar al paso 3.
-**Regla de precios para entradas SHORT:**
-- Las entradas SELL LIMIT deben estar **por encima o en** el precio actual para que queden pendientes
-- Si el precio límite es MENOR que el precio de mercado → Binance ejecuta inmediatamente (como MARKET)
-- Para entradas escalonadas SHORT: precio actual + escalones hacia ARRIBA (esperando spike)
-- O bien: 1 entrada MARKET inmediata + resto LIMIT más abajo para promediar si baja más
-**Regla de margen:** siempre verificar que la cuenta esté en modo **Isolated** para la posición, nunca Cross.
+**Regla de entradas SHORT:** si hay múltiples entradas pendientes y se activa el SL o el TS, **cancelar inmediatamente las entradas no llenadas desde la UI**. Una entrada que se llena después de cerrar la posición abre una nueva exposición no controlada.
+
+---
+
+### Estructura LONG — altcoin con momentum
+
+**Lógica:** entrar escalonado en dips durante el arranque del movimiento, capturar el trend mientras dure.
+**Horizonte:** abierto, sin TP fijo — el trailing stop gestiona la salida.
+
+```
+Par:              XXXUSDT
+Tipo:             LONG
+Capital:          $100 USDT
+Leverage:         3x
+Exposición total: $300 USDT
+
+── ENTRADAS (BUY LIMIT — precios POR DEBAJO del precio actual) ──
+  Entrada 1: precio actual o −2%  → 50% del capital  ← entrada principal
+  Entrada 2: precio actual −5%    → 30% del capital  ← si hay dip adicional
+  Entrada 3: precio actual −10%   → 20% del capital  ← si hay corrección más profunda
+
+  ⚠️ BUY LIMIT por encima del precio actual = se llena inmediatamente (MARKET).
+     Siempre colocar por debajo del precio actual para que quede pendiente.
+
+── TOMA DE GANANCIAS ──
+  Sin TP fijo — el objetivo es ride the trend completo.
+  El trailing stop captura la ganancia cuando el momentum se agota.
+
+── PROTECCIONES MANUALES (UI de Binance — configurar INMEDIATAMENTE después de las entradas) ──
+  ① Stop Loss (Stop Market):
+     Precio: 8-10% por debajo de la última entrada
+     Tipo: Stop Market
+
+  ② Trailing Stop:
+     Activación: 5% POR ENCIMA del precio de la primera entrada
+                 (esperar que el precio suba primero antes de activar)
+     Callback: 6-8%
+     Cuándo activar: cuando la posición esté en ganancia, no antes
+
+  Lógica combinada:
+  - Si precio baja después de entrar → SL cierra (pérdida limitada)
+  - Si precio sube → TS sigue al precio hacia arriba
+  - Cuando el momentum se agota y el precio retrocede X% → TS cierra con ganancia
+
+Precio de invalidación: si rompe por debajo de la última entrada con volumen alto
+Pérdida máxima estimada: $XX USDT (XX% del capital)
+```
+
+**Diferencia clave LONG vs SHORT:**
+
+| Aspecto | SHORT | LONG |
+|---|---|---|
+| Entradas LIMIT | Por encima del precio actual | Por debajo del precio actual |
+| TP fijo | Sí — pumps revierten rápido | No — ride the trend |
+| TS activación | Cerca del pico (entre pico y entrada) | Cuando el precio ya subió (en ganancia) |
+| TS propósito | Capturar ganancia en la bajada | Seguir el precio al alza y cerrar al revertir |
+| Horizonte | 1-1.5 días | Abierto |
 
 ---
 
 ## Paso 3 — Validación en testnet
 
-**Cuándo:** al configurar el sistema por primera vez, o si hay un error inesperado en producción.
-**NO es obligatorio antes de cada operación individual** — los tipos de orden válidos (LIMIT/MARKET) ya están validados. Solo correrlo si Binance anuncia cambios en su API o aparece un error nuevo.
+**Cuándo:** al configurar el sistema por primera vez, o si aparece un error nuevo en producción.
+**NO es obligatorio antes de cada operación** — LIMIT/MARKET ya están validados.
 **Comando:** `node testnet-validator.js` desde la raíz del proyecto.
 
-### 3a — Validar endpoints a usar
+### Estado validado de endpoints (actualizado 2026-04-16)
 
-El validador prueba todos los tipos de órdenes. Resultado esperado actual:
-
-| Tipo | Estado esperado |
+| Tipo | Estado |
 |---|---|
-| LIMIT | ✅ Funciona |
-| MARKET | ✅ Funciona |
-| STOP_MARKET | ❌ -4120 (bloqueado por Binance) |
-| TAKE_PROFIT_MARKET | ❌ -4120 (bloqueado por Binance) |
-| TRAILING_STOP_MARKET | ❌ -4120 (bloqueado por Binance) |
+| `LIMIT` | ✅ Funciona |
+| `MARKET` | ✅ Funciona |
+| `STOP_MARKET` | ❌ -4120 (bloqueado por Binance) |
+| `TAKE_PROFIT_MARKET` | ❌ -4120 (bloqueado por Binance) |
+| `TRAILING_STOP_MARKET` | ❌ -4120 (bloqueado por Binance) |
 
 Si algún resultado cambia → actualizar `docs/api-reference/capacidades-mcp.md`.
 
-### 3b — Simular la estrategia en testnet
+### Simular la estrategia en testnet (3b)
 
-Ejecutar las órdenes exactas de la estrategia pero en testnet:
-- Mismos precios, mismas cantidades, mismo leverage
-- Verificar que todas las órdenes se crean correctamente
-- Verificar que los precios y cantidades respetan los filtros del símbolo
+Ejecutar las órdenes exactas en testnet: mismos precios, mismas cantidades, mismo leverage.
+Verificar que todas se crean correctamente y respetan los filtros del símbolo.
 
-**Solo si el 3b pasa sin errores → avanzar al paso 4.**
+**Solo si 3b pasa sin errores → avanzar al paso 4.**
 
 ---
 
@@ -185,153 +296,105 @@ Si algún punto falla → volver al paso 1.
 
 ## Paso 5 — Ejecución en producción (modelo híbrido)
 
-El sistema opera en modo **híbrido**: Claude ejecuta lo que puede via API,
-el usuario ejecuta manualmente lo que Binance bloquea en la API pública.
+El sistema opera en modo **híbrido**: Claude ejecuta via API, el usuario hace manualmente lo que Binance bloquea.
 
-### Lo que Claude ejecuta automáticamente
-| Acción | Tipo de orden | Estado |
+### Lo que Claude ejecuta
+
+| Acción | Tipo | Estado |
 |---|---|---|
-| Entradas escalonadas | LIMIT | ✅ Claude lo hace |
-| Take Profit | LIMIT | ✅ Claude lo hace |
-| Cierre de emergencia | MARKET | ✅ Claude lo hace si el usuario lo pide |
+| Entradas escalonadas | LIMIT | ✅ |
+| Take Profit (solo después de tener posición) | LIMIT | ✅ |
+| Cierre de emergencia | MARKET | ✅ si el usuario lo pide |
 
-### Lo que el usuario hace manualmente en la UI de Binance
-| Acción | Por qué manual | Cómo hacerlo |
+### Lo que el usuario hace manualmente (UI de Binance)
+
+| Acción | Por qué manual | Dónde |
 |---|---|---|
-| Stop Loss automático | STOP_MARKET bloqueado (-4120) | Futures UI → posición → Add SL/TP |
-| Trailing Stop | TRAILING_STOP bloqueado (-4120) | Futures UI → posición → Trailing Stop |
-| OCO (TP+SL juntos) | Endpoint no existe en futuros | Futures UI → posición → OCO order |
-| Grid bots | Endpoint no público | Futures UI → Bot Trading → Grid |
-
-### Protocolo de comunicación en cada estrategia
-
-Cuando Claude presenta una estrategia, la divide en dos secciones claras:
-
-```
-═══════════════════════════════════════
- CLAUDE EJECUTA (via API)
-═══════════════════════════════════════
-  • Entrada 1: LIMIT SELL @ $X.XX
-  • Entrada 2: LIMIT SELL @ $X.XX
-  • Take Profit: LIMIT BUY @ $X.XX
-
-═══════════════════════════════════════
- VOS HACÉS MANUALMENTE (UI Binance)
-═══════════════════════════════════════
-  • Stop Loss: ir a Futures → tu posición
-    → Edit → SL @ $X.XX
-  • (opcional) Trailing Stop: igual desde
-    la UI, activar trailing con X% callback
-═══════════════════════════════════════
-```
-
-Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
+| Stop Loss | STOP_MARKET bloqueado (-4120) | Futures → posición → Add SL/TP |
+| Trailing Stop | TRAILING_STOP bloqueado (-4120) | Futures → posición → Trailing Stop |
+| Cancelar entradas pendientes si SL/TS activa | Evitar nueva exposición no controlada | Futures → Open Orders → cancelar |
+| Grid bots | Endpoint no público | Futures → Bot Trading → Grid |
 
 ### Protocolo de entorno — declarar SIEMPRE antes de ejecutar
 
-El usuario se guía por esto para saber si es simulación o dinero real.
-
 **Testnet:**
 ```
-🔵 ENTORNO: TESTNET — build/.env.testnet
+🔵 ENTORNO: TESTNET — build/.env.testnet — fapi: testnet.binancefuture.com
 ```
 
 **Producción — mostrar alerta y esperar confirmación explícita:**
 ```
-🔴 ENTORNO: PRODUCCIÓN — build/.env — dinero real
+🔴 ENTORNO: PRODUCCIÓN — build/.env — fapi: fapi.binance.com
 ⚠️  ALERTA: estamos por ejecutar una orden con dinero real.
     Par: XXXUSDT | Tipo: SELL SHORT LIMIT | Precio: $X.XX | Qty: XX
     Confirmás? (sí / no)
 ```
 
-Esta alerta se muestra **siempre** antes de producción, aunque el usuario ya haya
-confirmado la estrategia. Es la última verificación antes de tocar capital real.
+Esta alerta se muestra **siempre** antes de producción, aunque el usuario ya haya confirmado la estrategia.
+
+### Formato de presentación — dividir siempre en dos bloques
+
+```
+═══════════════════════════════════════════════════
+ CLAUDE EJECUTA (via API)
+═══════════════════════════════════════════════════
+  • Entrada 1: LIMIT [SELL/BUY] @ $X.XX — qty XX
+  • Entrada 2: LIMIT [SELL/BUY] @ $X.XX — qty XX
+  • TP1: LIMIT [BUY/SELL] @ $X.XX — qty XX  ← colocar después de 1era entrada
+  • TP2: LIMIT [BUY/SELL] @ $X.XX — qty XX
+
+═══════════════════════════════════════════════════
+ VOS CONFIGURÁS MANUALMENTE (UI Binance)
+ → Futures → Positions → [PAR] → Edit
+═══════════════════════════════════════════════════
+  ① Stop Loss (Stop Market): $X.XX
+  ② Trailing Stop:
+       Activación: $X.XX  ← [SHORT: cerca del pico | LONG: cuando estás en ganancia]
+       Callback:   6%
+═══════════════════════════════════════════════════
+```
+
+Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
 
 ### Orden de ejecución
+
 1. Declarar entorno (🔵 testnet / 🔴 producción + alerta)
 2. Esperar confirmación del usuario si es producción
 3. Claude coloca todas las LIMIT entries
-4. Claude coloca el/los LIMIT de Take Profit **solo después que llene alguna entrada** (lección ORDI: -2022 en Hedge Mode si no hay posición abierta)
-5. Claude informa al usuario qué debe hacer manualmente (SL desde UI)
-6. Usuario confirma que colocó el SL manual
+4. Claude coloca los LIMIT de Take Profit **solo después que entre la 1era orden** (error -2022 si no hay posición)
+5. Claude muestra el instructivo de SL + TS con los precios calculados para ese setup
+6. Usuario confirma que colocó SL + TS
 7. Registrar en watchlist
 
-### Protocolo de protecciones manuales — después de que Claude coloca las órdenes
-
-Una vez que Claude confirma que las LIMIT entries fueron creadas, el usuario configura
-**ambas protecciones al mismo tiempo** en la UI de Binance antes de hacer cualquier otra cosa.
-
-```
-═══════════════════════════════════════════════════════════
- PASO OBLIGATORIO: configurar SL + TS en la UI de Binance
-═══════════════════════════════════════════════════════════
-
-1. Ir a: Futures → pestaña "Positions"
-2. Tocar la posición abierta → "Edit"
-
- ┌─ STOP LOSS (fijo) ──────────────────────────────────────┐
- │  Precio = precio de invalidación de la estrategia       │
- │  Tipo: Stop Market (no Stop Limit — en pumps volátiles  │
- │  el Stop Limit puede no llenarse)                       │
- │  Propósito: protección de capital si el precio sube     │
- │  rápido sin darte tiempo a reaccionar                   │
- └─────────────────────────────────────────────────────────┘
-
- ┌─ TRAILING STOP ─────────────────────────────────────────┐
- │  Precio de activación = 3-5% POR DEBAJO del pico/máximo │
- │  (NO en el precio de entrada — eso es el error ORDI)    │
- │  Callback = 5-8% (qué tanto puede rebotar antes de      │
- │  cerrar la posición)                                    │
- │  Propósito: captura la ganancia cuando el precio baja   │
- └─────────────────────────────────────────────────────────┘
-
-Ejemplo real (ORDI pico $9.70, entradas $9.00-$9.50):
-  SL:  $10.20 (Stop Market)
-  TS:  Activación $9.40 | Callback 6%
-       → se activa si precio baja a $9.40 y luego sube 6%
-       → captura ganancia si precio baja más
-═══════════════════════════════════════════════════════════
-```
-
-**Claude confirma** que el usuario colocó ambas protecciones antes de dar la operación por activa.
-
-#### Por qué SL + TS y no solo uno de los dos
-
-| Solo SL | Solo TS | SL + TS juntos |
-|---|---|---|
-| No captura la ganancia automáticamente | Si el precio sube antes de bajar, cierra en pérdida | ✅ El SL limita la pérdida máxima. El TS captura la ganancia. |
-| Hay que estar mirando para cerrar | No hay techo de pérdida si el precio sube mucho | ✅ La operación se gestiona sola en ambas direcciones. |
-
-#### Lección ORDI (Abr 2026)
-
-El trailing stop NO fue un error — funcionó exactamente como debe.
-El problema: el precio de activación era $8.50 (mismo que la entrada), no cerca del pico $9.70.
-Cuando el precio subió brevemente antes de que entrara la 3era orden, el TS se activó desde ese nivel bajo.
-
-**Regla:** el precio de activación del TS siempre debe estar entre el **pico del pump y la primera entrada**, no en la primera entrada.
-
 ### Durante la operación
+
 - Claude verifica precio y estado cuando el usuario lo consulta
 - Si el precio se acerca al nivel de riesgo → Claude avisa y propone cerrar con MARKET
+- Si SL o TS activa → Claude recuerda cancelar entradas pendientes desde la UI
 - El usuario siempre decide la acción final
 
 ---
 
-## Limitaciones conocidas del sistema (a 2026-04-16)
+## Limitaciones del sistema (a 2026-04-16)
 
 | Limitación | Impacto | Workaround |
 |---|---|---|
-| STOP_MARKET no disponible via API | No hay stop automático | Stop manual con LIMIT monitoreado |
+| STOP_MARKET no disponible via API | No hay stop automático | Stop Market manual desde UI inmediatamente post-ejecución |
+| TRAILING_STOP no disponible via API | No hay TS automático | Trailing Stop manual desde UI |
 | Grids de futuros no disponibles via API | No crear grids desde Claude | Crear desde UI de Binance |
-| TWAP/VP de futuros no disponibles | No entradas graduales automáticas | Múltiples LIMIT escalonados |
 | Hedge Mode en cuenta real | Todas las órdenes requieren `positionSide` | Siempre incluir LONG/SHORT |
-| Testnet en One-way Mode | Scripts deben adaptarse al modo | Detectar modo antes de enviar órdenes |
+| Testnet en One-way Mode | Scripts deben adaptarse al modo | No enviar `positionSide` en testnet |
+| TP en Hedge Mode | No se puede colocar antes de tener posición | Colocar TP solo después de la primera entrada |
 
 ---
 
-## Cuándo correr el validador
+## Lecciones de ejecución registradas
 
-- **Siempre** antes de ejecutar una estrategia nueva con capital real
-- Cuando Binance anuncia cambios en su API
-- Si aparece un error inesperado en producción
-- Al inicio de una sesión donde se planee operar (tarda ~15 segundos)
+| Fecha | Lección |
+|---|---|
+| Abr 2026 | **SELL LIMIT por debajo del precio = ejecución inmediata.** Todas las entradas SHORT deben estar POR ENCIMA del precio actual para quedar pendientes. |
+| Abr 2026 | **TP en Hedge Mode antes de tener posición → error -2022.** Colocar TPs solo después que entre la primera orden. |
+| Abr 2026 | **Trailing Stop SHORT: activar entre el pico y la primera entrada, no en la entrada.** Si se activa en el precio de entrada y el precio sube antes de bajar, el TS cierra sin ganancia (lección ORDI). |
+| Abr 2026 | **Si SL o TS activa con entradas pendientes → cancelarlas inmediatamente.** Una entrada que se llena después de cerrar la posición abre nueva exposición no controlada. |
+| Abr 2026 | **Verificar siempre Isolated antes de ejecutar.** Cross expone todo el balance. |
+| Abr 2026 | **Precision error (-1111): usar cantidades enteras o con mínimos decimales.** Binance rechaza `16.600` — usar `17`. |

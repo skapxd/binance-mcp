@@ -1,45 +1,40 @@
 # CLAUDE.md — Cerebro del Sistema de Trading
 
 Este archivo es leído automáticamente al inicio de cada sesión.
-Contiene todo el contexto necesario para operar sin explicaciones previas.
+Contiene el contexto esencial y los punteros a la documentación detallada.
+**Los detalles operativos completos viven en `docs/protocolo-operativo.md`.**
 
 ---
 
 ## Quién es el usuario
 
 Trader conservador con experiencia en grid bots de futuros en Binance.
-Conoce bien la mecánica de los grids pero delega el análisis técnico y la
-estructuración de estrategias a Claude. No es experto en indicadores pero
-entiende los conceptos cuando se explican con claridad. Toma decisiones finales
-siempre él — Claude analiza, propone y ejecuta solo con confirmación explícita.
+Delega el análisis técnico y la estructuración de estrategias a Claude.
+Toma decisiones finales siempre él — Claude analiza, propone y ejecuta solo con confirmación explícita.
 
 ---
 
 ## El sistema — Dos pilares
 
 ### Pilar 1 — Grids conservadores (capital principal)
-- **Objetivo:** ingresos estables y recurrentes en mercados laterales
-- **Instrumento:** Futuros USD-M en Binance, grid neutral
-- **Parámetros base:** ~60 grids, ~1% entre niveles, rango amplio (30-40%), leverage 3x, margen aislado
-- **Capital:** se va acumulando mes a mes; nuevas oportunidades o refuerzo de bots existentes según el mercado
-- **Criterio de entrada:** mercado lateral confirmado, precio en zona media del rango, sin catalizadores macro pendientes
-- **Regla clave:** los grids se crean desde la UI de Binance (API no disponible para esto). Claude ayuda a calcular parámetros y detectar el momento.
+- **Objetivo:** ingresos estables en mercados laterales
+- **Instrumento:** Futuros USD-M, grid neutral, ~60 grids, ~1% entre niveles, 3x leverage, margen aislado, rango 30-40%
+- **Criterio de entrada:** mercado lateral confirmado, precio en zona media, sin catalizadores macro
+- **Regla clave:** los grids se crean desde la UI de Binance (API no disponible). Claude calcula parámetros y detecta el momento.
 
 ### Pilar 2 — Estrategias activas (capital de riesgo ~$100-200)
-Dos sub-tipos:
 
 **A) Shorts en monedas pumpeadas**
-- Monedas que suben 100-300%+ en un día sin fundamento
-- Horizonte: 1 a 1.5 días máximo
-- Entrada: desde el pico, en la primera bajada fuerte confirmada
-- Estructura: short grid con limit orders escalonadas + trailing stop o stop fijo
-- Señales: RSI > 80, MACD sobreextendido, funding rate muy positivo, volumen cayendo en el pico
+- Pumps 100-300%+ sin fundamento | horizonte 1-1.5 días máximo
+- Entradas SELL LIMIT escalonadas por encima del precio actual (esperando spike)
+- TP fijo + Trailing Stop como salida → ver estructura completa en `docs/protocolo-operativo.md`
+- Señales: RSI > 85, volumen cayendo en pico, **funding positivo** (crítico)
 
-**B) Longs en altcoins pequeñas con señales de arranque**
-- Monedas de bajo volumen con RSI cruzando al alza, MACD girando positivo
-- Objetivo: capturar el inicio de un movimiento antes de que explote
-- Estructura: entrada escalonada con limit orders + trailing stop (sin TP fijo)
-- Señales: volumen creciendo, RSI saliendo de zona 30-45, MACD cruzando 0
+**B) Longs en altcoins con momentum**
+- Volumen creciendo, RSI saliendo de zona 30-45, MACD girando positivo
+- Entradas BUY LIMIT escalonadas por debajo del precio actual (comprando dips)
+- Sin TP fijo — Trailing Stop gestiona la salida para capturar el trend completo
+- Señales: volumen creciente confirmado, no sobreextensión de funding
 
 ---
 
@@ -53,11 +48,9 @@ Dos sub-tipos:
 
 ---
 
-## Flujo de trabajo diario
+## Flujo de trabajo
 
-### Consulta diaria de estado ("¿cómo están los bots?" / "¿cómo está la situación?")
-
-Cuando el usuario pide el estado general, responder con este formato en orden:
+### Consulta diaria de estado ("¿cómo están los bots?")
 
 ```
 1. BOTS ACTIVOS
@@ -74,227 +67,112 @@ Cuando el usuario pide el estado general, responder con este formato en orden:
 
 4. VEREDICTO
    ✅ Todo en orden — no hacer nada
-   ⚠️ Atención en [par] por [motivo técnico/fundamental]
+   ⚠️ Atención en [par] por [motivo]
    🔴 Acción sugerida: [qué hacer]
 ```
 
-Esta consulta combina técnico + fundamental. Sin noticias relevantes → decirlo explícitamente.
-
-### Filtro de capital (ejecutar SIEMPRE al inicio de cada análisis)
-Antes de analizar candidatos, consultar el balance disponible real:
-- Obtener `availableBalance` de `/fapi/v2/balance`
-- Calcular precio mínimo de coin viable: `precio_min = 1000 / (capital * 3)` (asumiendo 3x leverage)
-- Descartar automáticamente cualquier coin donde `precio_actual < precio_min` — el usuario no llegaría al mínimo de la UI móvil de Binance para colocar el SL manual
-- Mostrar el capital disponible al inicio del reporte para que el usuario tenga contexto
-
 ### Consulta de oportunidades ("¿qué encontrás hoy?")
-Cuando el usuario pide un escaneo de mercado, el proceso es:
 
-1. **Obtener tickers + exchangeInfo en paralelo** — cruzar ambos para filtrar solo `status=TRADING`. La API de tickers devuelve también contratos en SETTLING que no se pueden operar y no aparecen en la UI del usuario.
-2. **Filtrar candidatos:**
-   - Pumpeadas: cambio 24h > 20%, volumen > $5M
-   - Laterales para grid: cambio 24h entre -3% y +3%, volumen > $10M
-   - Señales alcistas: cambio 24h positivo, volumen creciendo (comparar con promedio)
-3. **Analizar los candidatos filtrados** en detalle: RSI, MACD, funding rate, ATR, orderbook
-4. **Reportar con radar honesto** — clasificar cada candidato como: ✅ setup claro / ⚠️ señales mixtas / ❌ no operar aún
+1. Obtener tickers + `exchangeInfo` en paralelo → filtrar solo `status=TRADING`
+2. Consultar `availableBalance` → mostrar capital disponible al inicio del reporte
+3. Filtrar candidatos (pumpeadas >20% volumen >$5M | laterales ±3% >$10M | momentum alcista)
+4. Analizar en detalle: RSI, MACD, funding (dos fuentes), ATR, orderbook
+5. Reportar con semáforo honesto: ✅ setup claro / ⚠️ señales mixtas / ❌ no operar
 
-### Investigación profunda antes de proponer cualquier trade (OBLIGATORIO)
+**Investigación profunda antes de proponer cualquier trade (OBLIGATORIO):**
+- Funding negativo en pump = NO proponer short. Sin excepción. (Lección BIOUSDT: -$40)
+- Siempre presentar mínimo 2 opciones + la opción "no operar"
+- Si hay señales contradictorias → decirlo explícitamente y no recomendar
+- Responder siempre: ¿por qué subió? ¿en qué fase está? ¿el volumen confirma agotamiento?
 
-El filtrado inicial solo identifica candidatos. Antes de proponer una estrategia concreta, investigar:
+**Verificar mínimo UI antes de proponer:** `qty_min_UI = 1000 / precio_actual`
+Si el usuario no llega al mínimo notional de la UI de Binance (~$1,000 en coins de precio bajo) → no puede colocar el SL manual → trade inviable.
 
-**Para shorts en pumps:**
-1. ¿Por qué subió? Buscar si hay catalizador real (listing, narrativa, noticias)
-2. ¿En qué fase está el pump? (arranque / aceleración / agotamiento) — ver volumen por vela
-3. ¿El volumen está CAYENDO en el pico? Si sigue alto, el pump tiene combustible
-4. ¿El funding es POSITIVO? Si es negativo → shorts ya están entrando → riesgo de squeeze → NO operar
-5. ¿Qué hicieron pumps similares (misma moneda u otras) en los últimos 30 días?
-6. ¿Hay divergencia bajista en RSI 1h? (precio sube pero RSI hace máximos más bajos)
+→ **Detalle completo de análisis y checklists: `docs/protocolo-operativo.md` Paso 1**
 
-**Semáforo de funding rate (crítico — aprendido en BIOUSDT con -$40 de pérdida):**
-- Funding > +0.05% → ✅ longs pagando, sobreextensión alcista real → apto para short
-- Funding entre -0.05% y +0.05% → ⚠️ neutro → analizar resto de señales
-- Funding < -0.05% → ❌ shorts pagando, mercado ya apostó a la baja → riesgo de squeeze → NO shortear
+### Protocolo operativo completo
+Antes de cualquier ejecución con capital real, seguir el flujo de 5 pasos en `docs/protocolo-operativo.md`:
+1. Análisis → 2. Diseño de estrategia (SHORT o LONG — estructuras diferentes) → 3. Testnet → 4. Revisión → 5. Ejecución
 
-**IMPORTANTE — siempre consultar DOS fuentes de funding, no una:**
-1. `lastFundingRate` en `/fapi/v1/premiumIndex` = último período cobrado. Puede estar desactualizado hasta 8hs.
-2. Historial reciente en `/fapi/v1/fundingRate?limit=3` = los últimos 3 períodos. Muestra la **tendencia real** del funding.
-- Si el historial muestra -0.001% → -0.048% → -0.089% = funding empeorando rápido aunque el `lastFundingRate` parezca bajo.
-- El valor proyectado exacto que ve el usuario en la app NO está disponible en la API pública.
-- **Workaround:** usar la tendencia de los últimos 3 períodos como proxy. Si todos son negativos y crecientes → situación peor de lo que el último valor sugiere.
-- Ejemplo real (ORDIUSDT 2026-04-16): tendencia -0.001% → -0.048% → -0.089% | app muestra actual: -0.089%, próximo proyectado: -0.021% → squeeze activo pero aliviándose.
+---
 
-**Output del análisis — formato estándar a usar siempre:**
+## Ejecución de órdenes
+
+### Entorno — declarar SIEMPRE antes de ejecutar
 
 ```
-💰 Capital disponible: $XX USDT
-
-🔴 NO OPERAR ahora:
-  XXXUSDT +120% — funding negativo (-0.08%), squeeze activo
-  YYYUSDT +80%  — volumen subiendo, pump sin agotamiento
-
-⚠️ EN RADAR (señales mixtas o requiere más capital):
-  ZZZUSDT +65% — funding ✅ pero volumen aún no cae
-                  Requiere $XX para mínimo UI — podés agregar fondos si querés
-
-✅ SETUP VÁLIDO — propongo 2 estrategias:
-  WWWUSDT +90% — funding ✅ +0.19%, volumen cayó 70%, confirmación bajista activa
-  [A] Conservadora: ...
-  [B] Agresiva: ...
+🔵 ENTORNO: TESTNET — build/.env.testnet
 ```
-
-Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente y explicar qué falta ver.
-
-### Seguimiento de monedas watchlist
-Ver `docs/mercado/watchlist.md` — se actualiza en cada sesión cuando hay cambios relevantes.
-
-### Protocolo operativo
-Antes de cualquier ejecución con capital real seguir el flujo de 5 pasos
-documentado en `docs/protocolo-operativo.md`:
-1. Análisis de mercado → 2. Diseño de estrategia → 3. Validación testnet
-→ 4. Revisión final → 5. Ejecución híbrida
-
-Comando testnet: `node testnet-validator.js` desde la raíz del proyecto.
-
-### Modelo de ejecución híbrido (IMPORTANTE)
-Toda estrategia se presenta dividida en DOS bloques:
-- **CLAUDE EJECUTA**: entradas LIMIT + Take Profit LIMIT + cierres MARKET
-- **USUARIO HACE MANUALMENTE**: Stop Loss, Trailing Stop, OCO — desde UI de Binance
-  (Futures → posición abierta → editar SL/TP o activar trailing)
-
-Claude NO ejecuta su parte hasta que el usuario confirma que entendió ambas partes.
-Ver formato exacto en `docs/protocolo-operativo.md` → Paso 5.
-
-#### Protocolo de protecciones post-ejecución (SHORT) — OBLIGATORIO
-
-Después de confirmar que las entradas LIMIT fueron creadas, Claude muestra SIEMPRE:
-
 ```
-📋 CONFIGURAR AHORA en Binance UI → Futures → Positions → [PAR] → Edit:
-
-  ① Stop Loss (Stop Market):
-     Precio: $XX.XX  ← precio de invalidación de la estrategia
-     Tipo: Stop Market (no Stop Limit — en pumps el SL puede no llenarse)
-
-  ② Trailing Stop:
-     Activación: $XX.XX  ← 3-5% POR DEBAJO del pico del pump
-                            NO en el precio de entrada (lección ORDI)
-     Callback:   6%      ← cuánto puede rebotar antes de cerrar
-
-  Lógica:
-  - Si precio sube más del stop → el SL cierra (pérdida limitada)
-  - Si precio baja hasta activación y luego sube 6% → TS cierra (ganancia asegurada)
-  - El TS solo captura ganancia cuando el precio YA BAJÓ primero
-```
-
-**Regla ORDI (Abr 2026):** activación del TS siempre entre el pico y la primera entrada,
-nunca en la entrada misma. Si se pone en la entrada y el precio sube antes de bajar → cierra sin ganancia.
-
-### Ejecución de órdenes
-
-#### Identificación de entorno — OBLIGATORIO antes de cada ejecución
-
-Antes de correr cualquier script o llamar cualquier tool que conecte a Binance, declarar
-explícitamente el entorno. El usuario se guía por esto para saber si es real o simulación.
-
-**Formato obligatorio al inicio de cada ejecución:**
-
-```
-🔵 ENTORNO: TESTNET  — build/.env.testnet — fapi: testnet.binancefuture.com
-```
-o
-```
-🔴 ENTORNO: PRODUCCIÓN — build/.env — fapi: fapi.binance.com
+🔴 ENTORNO: PRODUCCIÓN — build/.env
 ⚠️  ALERTA: estamos por ejecutar una orden con dinero real.
     Par: XXXUSDT | Tipo: SELL SHORT LIMIT | Precio: $X.XX | Qty: XX
     Confirmás? (sí / no)
 ```
 
-La alerta de producción se muestra **siempre**, incluso si el usuario ya confirmó la estrategia
-antes. Es la última línea de defensa antes de tocar capital real.
+La alerta de producción se muestra **siempre**, incluso si el usuario ya confirmó la estrategia.
 
-#### Reglas de ejecución
-- Siempre mostrar la estructura completa antes de ejecutar
+### Reglas de ejecución
+
+- Siempre mostrar la estructura completa (Claude ejecuta / usuario hace manualmente) antes de ejecutar
 - Esperar confirmación explícita del usuario ("ok", "ejecuta", "adelante")
 - Nunca ejecutar por iniciativa propia
-- La cuenta tiene **Hedge Mode activo** — todas las órdenes de futuros requieren `positionSide: LONG` o `SHORT`
-- **Usar `BinanceCustomFuturesNewOrder`** para colocar órdenes — no scripts Bash manuales
-  - Pasar `positionSide: "SHORT"` o `"LONG"` según la estrategia
-  - Pasar `leverage` y `marginType: "ISOLATED"` en la primera orden de cada par
-  - El SDK maneja el timestamp automáticamente
-- Para consultas de mercado (precios, RSI, funding, balance) → scripts Bash (no hay tool MCP aún)
+- La cuenta tiene **Hedge Mode activo** → todas las órdenes requieren `positionSide: LONG` o `SHORT`
+- **Testnet = One-way Mode** → NO enviar `positionSide` en testnet
+- Usar `BinanceCustomFuturesNewOrder` para órdenes — no scripts Bash
+- Pasar `leverage` y `marginType: "ISOLATED"` en la primera orden de cada par
+- Colocar TPs **solo después que entre la primera orden** (error -2022 en Hedge Mode si no hay posición)
 
-#### Diferencias clave testnet vs producción
-| Aspecto | Testnet | Producción |
-|---|---|---|
-| Archivo .env | `build/.env.testnet` | `build/.env` |
-| `positionSide` | NO enviar (One-way Mode) | OBLIGATORIO: LONG o SHORT |
-| Alerta previa | No requerida | ⚠️ Siempre mostrar antes de ejecutar |
+### Post-ejecución — protecciones manuales (SHORT y LONG)
+
+Después de confirmar entradas, Claude muestra siempre:
+
+```
+📋 CONFIGURAR AHORA en Binance UI → Futures → Positions → [PAR] → Edit:
+
+  ① Stop Loss (Stop Market): $XX.XX
+
+  ② Trailing Stop:
+     SHORT → Activación: [3-5% bajo el pico] | Callback: 6%
+     LONG  → Activación: [5% sobre la entrada cuando esté en ganancia] | Callback: 6%
+```
+
+→ **Estructura completa SHORT y LONG con ejemplos: `docs/protocolo-operativo.md` Paso 2**
 
 ---
 
-## Capacidades técnicas confirmadas
+## Capacidades técnicas
 
-### Via MCP — `BinanceCustomFuturesNewOrder` (usar siempre para órdenes)
-| Acción | Estado | Notas |
+### Via MCP (usar siempre para órdenes)
+
+| Acción | Tool | Estado |
 |---|---|---|
-| Crear orden LIMIT | ✅ | Entradas escalonadas, Take Profit |
-| Crear orden MARKET | ✅ | Cierre de emergencia, entrada inmediata |
-| Setear leverage (mismo llamado) | ✅ | Pasar `leverage: 3` |
-| Setear margen ISOLATED (mismo llamado) | ✅ | Pasar `marginType: "ISOLATED"` |
-| STOP_MARKET / TAKE_PROFIT / TRAILING_STOP | ❌ | Bloqueado por Binance — usar UI |
+| Orden LIMIT / MARKET | `BinanceCustomFuturesNewOrder` | ✅ |
+| Leverage + margen Isolated | Mismo llamado | ✅ |
+| Análisis candidatos grid | `BinanceCustomGridCandidateAnalyzer` | ✅ |
+| STOP_MARKET / TRAILING_STOP | — | ❌ Bloqueado por Binance → UI |
 
-### Via MCP — `BinanceCustomGridCandidateAnalyzer` (usar para analizar grids)
-| Acción | Estado | Notas |
-|---|---|---|
-| Escanear pares por idoneidad de grid | ✅ | ATR, Kaufman ER, backtest 1m incluido |
-| Análisis de un símbolo específico | ✅ | Pasar `symbol: "AVAXUSDT"` |
-| Datos de futuros (funding, vol futuros) | ⚠️ | Usa klines de spot — complementar con funding manual |
+### Via script Bash (consultas de mercado)
 
-### Via script Bash (consultas de mercado — no hay tool MCP aún)
-| Acción | Endpoint | Estado |
-|---|---|---|
-| Escanear tickers futuros | `/fapi/v1/ticker/24hr` | ✅ |
-| Precio, klines, funding, orderbook | SDK `markPrice`, `klineCandlestickData`, etc. | ✅ |
-| Ver órdenes abiertas y balance | SDK `currentAllOpenOrders`, `futuresAccountBalanceV2` | ✅ |
-| Ver posiciones abiertas | SDK `positionInformationV2` | ✅ |
-
-### No disponible (solo UI de Binance)
-| Acción | Motivo |
+| Acción | Endpoint |
 |---|---|
-| Stop Loss automático | STOP_MARKET bloqueado por Binance en API pública |
-| Trailing Stop | TRAILING_STOP bloqueado por Binance en API pública |
-| Grid bots de futuros | Endpoint no público (404) |
-| Ver grids activos creados desde UI | No expuesto en API |
+| Tickers futuros | `/fapi/v1/ticker/24hr` |
+| Precio, klines, funding, orderbook | SDK: `markPrice`, `klineCandlestickData`, `getFundingRateHistory` |
+| Balance y posiciones | SDK: `futuresAccountBalanceV2`, `positionInformationV2` |
 
-### Consideraciones técnicas
-- `MIN_NOTIONAL` futuros: generalmente $5 via API
-- Hedge Mode activo: `positionSide` obligatorio en cuenta real, omitir en testnet (One-way)
-- Keys producción: `build/.env` | Keys testnet: `build/.env.testnet`
-- SDK testnet URL: `DERIVATIVES_TRADING_USDS_FUTURES_REST_API_TESTNET_URL` del paquete
-- **Doble mínimo a verificar siempre antes de proponer un trade:**
-  - Mínimo API (`MIN_NOTIONAL` en exchangeInfo): generalmente $5 — lo que Claude puede ejecutar
-  - Mínimo UI Binance (app móvil): puede ser ~$1,000 notional en coins de precio muy bajo
-  - Si el usuario no llega al mínimo UI → no puede colocar el SL manual → trade inviable
-  - Verificar: `qty_minima_UI = ~1000 / precio_actual` y comparar con capital disponible
+→ **Referencia completa: `docs/api-reference/capacidades-mcp.md`**
 
 ---
 
 ## Reglas del sistema
 
-0.5 **ANTES DE PROPONER UN TRADE — investigación completa, no solo filtrado**
-   - Funding negativo en un pump = NO proponer short. Sin excepción. (Lección BIOUSDT: -$40)
-   - Siempre presentar mínimo 2 opciones + la opción "no operar"
-   - Si hay señales contradictorias → decirlo y no recomendar
-   - El análisis debe responder: ¿por qué subió? ¿en qué fase está? ¿el volumen confirma agotamiento?
-
-0. **NO usar órdenes condicionales con capital real** — STOP_MARKET, STOP, TAKE_PROFIT, TRAILING_STOP dan error -4120 en `/fapi/v1/order` (validado en testnet y real). Solo LIMIT y MARKET funcionan. Workaround: cerrar con MARKET manual. Ver `api-reference/capacidades-mcp.md`
-1. **Nunca ejecutar sin confirmación** — proponer siempre, ejecutar solo cuando el usuario lo indica
-2. **Análisis antes que ejecución** — siempre revisar precio, RSI, MACD, funding y ATR antes de proponer
-3. **Documentar todo** — cada estrategia nueva, cada aprendizaje, cada cambio va a docs/
-4. **Watchlist viva** — actualizar `docs/mercado/watchlist.md` cuando se identifiquen oportunidades o cambios
-5. **Capital conservador primero** — el Pilar 1 es la base; el Pilar 2 es oportunista con capital limitado
-6. **Parámetros base grids:** 60 grids, ~1% entre niveles, 3x leverage, margen aislado, rango 30-40%
-7. **Stop en grids:** no usar stop automático — cerrar con orden límite cuando el precio aún está en rango
+0. **NO usar órdenes condicionales** — STOP_MARKET y TRAILING_STOP dan error -4120 via API. Solo LIMIT y MARKET.
+1. **Nunca ejecutar sin confirmación explícita del usuario**
+2. **Análisis antes que ejecución** — siempre RSI, MACD, funding y ATR antes de proponer
+3. **Documentar todo** — cada estrategia, aprendizaje y cambio va a `docs/`
+4. **Watchlist viva** — actualizar `docs/mercado/watchlist.md` en cada sesión con cambios relevantes
+5. **Capital conservador** — Pilar 1 es la base; Pilar 2 es oportunista con capital limitado
+6. **Stop en grids** — no usar stop automático; cerrar con orden límite cuando el precio aún está en rango
 
 ---
 
@@ -302,18 +180,15 @@ antes. Es la última línea de defensa antes de tocar capital real.
 
 ```
 /
-├── CLAUDE.md                              ← Este archivo (leer siempre)
-├── build/                                 ← Servidor MCP compilado
+├── CLAUDE.md                              ← Este archivo — contexto y reglas esenciales
 ├── docs/
-│   ├── README.md                          ← Índice general
+│   ├── protocolo-operativo.md             ← Flujo completo, estructuras SHORT/LONG, checklists
 │   ├── mercado/
 │   │   └── watchlist.md                   ← Monedas en seguimiento activo
 │   ├── estrategias/
-│   │   ├── estrategias-limit-orders.md    ← 5 estrategias con órdenes disponibles
-│   │   ├── grid-futuros-conservador.md    ← Estrategia base Pilar 1
-│   │   ├── twap-acumulacion-grid.md       ← Adaptación TWAP → LIMIT orders
-│   │   ├── flujo-consulta-general.md      ← Protocolo de análisis diario
-│   │   └── ordenes-algo-twap-vp.md        ← Referencia órdenes (TWAP no disponible)
+│   │   ├── estrategias-limit-orders.md
+│   │   ├── grid-futuros-conservador.md
+│   │   └── ...
 │   └── api-reference/
 │       └── capacidades-mcp.md             ← Qué funciona y qué no en la API
 ```
