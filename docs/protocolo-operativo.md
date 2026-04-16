@@ -62,7 +62,20 @@
   [B] Agresiva: ...
 ```
 
-Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente.
+Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente y siempre cerrar con la sección de alarmas:
+
+```
+📵 SIN SETUP AHORA — qué vigilar
+
+  Par           Alarma        Condición para entrar
+  XXXUSDT       $X.XX ↑       RSI >78 en ese precio + volumen bajo
+  YYYUSDT       $X.XX ↓       RSI <30 + 2 velas 15m verdes con volumen
+
+  → Poné estas alarmas en la app de Binance (Futuros → par → campanita)
+    Cuando suene: avisame y analizamos en el momento si confirma entrada.
+```
+
+Esto aplica siempre que haya candidatos en radar pero sin señal de entrada inmediata.
 
 ---
 

@@ -67,7 +67,9 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | BIOUSDT | Short pump | 2026-04-15 | $0.0390 avg | 3 entradas SHORT LIMIT + 2 TPs + SL manual | ⛔ Cerrado con pérdida | Entrada $0.0392, cierre MARKET $0.0460. Pérdida: **-$40.80 USDT**. Causa: funding -0.82% ignorado → squeeze clásico. Ver lecciones. |
 | LYNUSDT | Short pump | 2026-04-16 | — | — | 👁️ En radar | +35% 24h. Funding ✅ +0.05%. Pero RSI 43 (neutral) y pump solo 55% — no sobreextendido. Esperar rebote a zona $0.082–$0.087 con RSI >75 para evaluar entrada short. Fase 4-5 actual. |
 | GUAUSDT | Short pump | 2026-04-15 | $0.57–$0.62 | Short grid LIMIT + stop | 📋 Desactualizado | Re-analizar si el usuario lo solicita. |
-| TRADOORUSDT | Short pump | 2026-04-16 | $7.20–$7.60 | 2 entradas SHORT LIMIT + 2 TPs + SL manual | 👁️ En radar | +19% 24h, pump 33% desde mínimos. Funding ✅ +0.074%. Órdenes testnet probadas y canceladas. No ejecutar hasta: RSI 1h ≥85 Y/O pump ≥80% desde $5.08 (precio ~$9.14+) Y volumen cayendo 60%+ del pico. |
+| TRADOORUSDT | Short pump | 2026-04-16 | $7.20–$7.60 | 2 entradas SHORT LIMIT + 2 TPs + SL manual | ❌ Descartado | Precio bajó a $6.23. Pump total solo 24% desde mínimos — lejos de las condiciones (≥80%). Sin setup. |
+| BASEDUSDT | Short pump | 2026-04-16 | $0.260–$0.290 | 3 entradas SHORT LIMIT + TP fijo + SL + TS | 👁️ En radar | +306% desde mínimos. Funding ✅ +0.19%. RSI 85. Ya corrigió 32% del pico ($0.327→$0.222). Esperar rebote a $0.265 con RSI >78 y volumen bajo. **Alarma puesta en $0.265 ↑** |
+| ORDIUSDT | Short pump | 2026-04-16 | $8.80–$9.20 | 3 entradas SHORT LIMIT + TP fijo + SL + TS | 👁️ En radar | Pump +225%. Precio $8.44, pico $9.70. Corrección activa. Esperar rebote a $8.85 con RSI >75. **Alarma puesta en $8.85 ↑** |
 
 ---
 

@@ -85,6 +85,19 @@ Toma decisiones finales siempre él — Claude analiza, propone y ejecuta solo c
 - Si hay señales contradictorias → decirlo explícitamente y no recomendar
 - Responder siempre: ¿por qué subió? ¿en qué fase está? ¿el volumen confirma agotamiento?
 
+**Cuando no hay setup inmediato → siempre cerrar con alarmas concretas:**
+```
+📵 SIN SETUP AHORA — dónde poner alarmas
+
+  Par        Alarma     Condición para entrar cuando suene
+  XXXUSDT    $X.XX ↑    RSI >78 + volumen bajo en rebote → SHORT
+  YYYUSDT    $X.XX ↓    RSI <30 + 2 velas verdes con volumen → LONG
+
+  → Binance app: Futuros → par → campanita de precio
+    Cuando suene: avisame y analizamos si confirma entrada.
+```
+Siempre dar precio exacto de alarma, no rangos. El usuario la pone en la app y me avisa cuando suena.
+
 **Verificar mínimo UI antes de proponer:** `qty_min_UI = 1000 / precio_actual`
 Si el usuario no llega al mínimo notional de la UI de Binance (~$1,000 en coins de precio bajo) → no puede colocar el SL manual → trade inviable.
 
