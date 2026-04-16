@@ -168,36 +168,54 @@ Ver formato exacto en `docs/protocolo-operativo.md` → Paso 5.
 - Siempre mostrar la estructura completa antes de ejecutar
 - Esperar confirmación explícita del usuario ("ok", "ejecuta", "adelante")
 - Nunca ejecutar por iniciativa propia
-- Usar siempre timestamp del servidor Binance (no del sistema local)
 - La cuenta tiene **Hedge Mode activo** — todas las órdenes de futuros requieren `positionSide: LONG` o `SHORT`
+- **Usar `BinanceCustomFuturesNewOrder`** para colocar órdenes — no scripts Bash manuales
+  - Pasar `positionSide: "SHORT"` o `"LONG"` según la estrategia
+  - Pasar `leverage` y `marginType: "ISOLATED"` en la primera orden de cada par
+  - El SDK maneja el timestamp automáticamente (no hace falta tomarlo de `/fapi/v1/time`)
+- Para consultas de mercado (precios, RSI, funding, balance) → scripts Bash (no hay tool MCP aún)
 
 ---
 
 ## Capacidades técnicas confirmadas
 
-### Disponible via API (funciona)
+### Via MCP — `BinanceCustomFuturesNewOrder` (usar siempre para órdenes)
+| Acción | Estado | Notas |
+|---|---|---|
+| Crear orden LIMIT | ✅ | Entradas escalonadas, Take Profit |
+| Crear orden MARKET | ✅ | Cierre de emergencia, entrada inmediata |
+| Setear leverage (mismo llamado) | ✅ | Pasar `leverage: 3` |
+| Setear margen ISOLATED (mismo llamado) | ✅ | Pasar `marginType: "ISOLATED"` |
+| STOP_MARKET / TAKE_PROFIT / TRAILING_STOP | ❌ | Bloqueado por Binance — usar UI |
+
+### Via MCP — `BinanceCustomGridCandidateAnalyzer` (usar para analizar grids)
+| Acción | Estado | Notas |
+|---|---|---|
+| Escanear pares por idoneidad de grid | ✅ | ATR, Kaufman ER, backtest 1m incluido |
+| Análisis de un símbolo específico | ✅ | Pasar `symbol: "AVAXUSDT"` |
+| Datos de futuros (funding, vol futuros) | ⚠️ | Usa klines de spot — complementar con funding manual |
+
+### Via script Bash (consultas de mercado — no hay tool MCP aún)
 | Acción | Endpoint | Estado |
 |---|---|---|
-| Escanear todos los tickers futuros | `/fapi/v1/ticker/24hr` | ✅ |
-| Precio, klines, funding, orderbook | `/fapi/v1/...` | ✅ |
-| Crear orden LIMIT en futuros | `/fapi/v1/order` | ✅ Validado |
-| Crear STOP_MARKET, TAKE_PROFIT, TRAILING_STOP | `/fapi/v1/order` | ❌ Error -4120 (validado testnet + real) |
-| Cancelar órdenes | `/fapi/v1/order` DELETE | ✅ Validado |
-| Ver órdenes abiertas y balance | `/fapi/v2/...` | ✅ Validado |
+| Escanear tickers futuros | `/fapi/v1/ticker/24hr` | ✅ |
+| Precio, klines, funding, orderbook | SDK `markPrice`, `klineCandlestickData`, etc. | ✅ |
+| Ver órdenes abiertas y balance | SDK `currentAllOpenOrders`, `futuresAccountBalanceV2` | ✅ |
+| Ver posiciones abiertas | SDK `positionInformationV2` | ✅ |
 
-### No disponible via API (solo desde UI de Binance)
+### No disponible (solo UI de Binance)
 | Acción | Motivo |
 |---|---|
-| Crear grid de futuros | Endpoint no público (404) |
-| TWAP / VP en futuros | Endpoint no público (404) |
+| Stop Loss automático | STOP_MARKET bloqueado por Binance en API pública |
+| Trailing Stop | TRAILING_STOP bloqueado por Binance en API pública |
+| Grid bots de futuros | Endpoint no público (404) |
 | Ver grids activos creados desde UI | No expuesto en API |
 
 ### Consideraciones técnicas
-- `MIN_NOTIONAL` ETHUSDT futuros: $20 USDT por orden
-- Hedge Mode activo: siempre incluir `positionSide`
-- Timestamp: siempre tomar de `/fapi/v1/time`, no del sistema local
-- Keys en: `build/.env` (BINANCE_API_KEY, BINANCE_API_SECRET)
-- Para ejecutar: `cd build && node -e "..."` con dotenv cargado
+- `MIN_NOTIONAL` futuros: generalmente $5 via API
+- Hedge Mode activo: `positionSide` obligatorio en cuenta real, omitir en testnet (One-way)
+- Keys producción: `build/.env` | Keys testnet: `build/.env.testnet`
+- SDK testnet URL: `DERIVATIVES_TRADING_USDS_FUTURES_REST_API_TESTNET_URL` del paquete
 - **Doble mínimo a verificar siempre antes de proponer un trade:**
   - Mínimo API (`MIN_NOTIONAL` en exchangeInfo): generalmente $5 — lo que Claude puede ejecutar
   - Mínimo UI Binance (app móvil): puede ser ~$1,000 notional en coins de precio muy bajo

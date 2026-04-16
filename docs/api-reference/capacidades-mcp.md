@@ -1,156 +1,189 @@
 # Referencia: Capacidades del MCP
 
-Lista completa de herramientas disponibles en este servidor MCP, organizadas por módulo.
+> Última actualización: 2026-04-16
+> Validado en testnet con SDK `@binance/derivatives-trading-usds-futures`
 
 ---
 
-## Mercado (sin autenticación)
+## Herramientas de Futuros USDⓈ-M — CUSTOM (las que usamos)
 
-| Tool | Descripción |
-|---|---|
-| `ping` / `time` | Estado y hora del servidor Binance |
-| `exchangeInfo` | Info de todos los pares (límites, filtros, precisión) |
-| `tickerPrice` | Precio actual de un par |
-| `ticker24hr` | Stats de 24hs (precio, volumen, cambio %) |
-| `depth` | Orderbook (bids/asks) |
-| `klines` | Velas OHLCV (cualquier timeframe) |
-| `aggTrades` | Trades agregados recientes |
-| `avgPrice` | Precio promedio últimos 5 min |
-| `BinanceOrderBook` | Análisis de orderbook con métricas (custom) |
+Estas dos tools fueron agregadas específicamente para este sistema de trading.
+Usan el SDK oficial `@binance/derivatives-trading-usds-futures` que apunta a `fapi.binance.com`.
 
----
+### `BinanceCustomFuturesNewOrder` — Colocar órdenes en Futuros
 
-## Spot Trading
+La herramienta principal de ejecución. Reemplaza los scripts Bash manuales.
 
-| Tool | Descripción |
-|---|---|
-| `newOrder` | Crear orden (LIMIT, MARKET, STOP_LOSS, etc.) |
-| `getOrder` | Consultar estado de una orden |
-| `deleteOrder` | Cancelar orden |
-| `getOpenOrders` | Órdenes abiertas |
-| `deleteOpenOrders` | Cancelar todas las órdenes de un par |
-| `allOrders` | Historial completo de órdenes |
-| `orderOco` | Crear orden OCO (take profit + stop loss) |
-
----
-
-## Algo Orders — Futuros USD-M
-
-> ⚠️ **Validado 2026-04-15:** Los endpoints de TWAP, VP y Grid de Futuros **no son públicos**.
-> Binance devuelve 404 en todos ellos. Solo funcionan desde la UI web de Binance.
-> Las tools del MCP están implementadas pero no pueden ejecutarse.
-
-| Tool | Descripción | Estado real |
-|---|---|---|
-| `BinanceTimeWeightedAveragePriceNewOrder` | Crear orden TWAP | ❌ Endpoint no público |
-| `BinanceVolumeParticipationNewTrade` | Crear orden VP | ❌ Endpoint no público |
-| `BinanceCreateFutureGrid` | Crear grid de futuros (Long/Short/Neutral) | ❌ Endpoint no público |
-| `cancelAlgoOrder` | Cancelar orden algo activa | ❌ Endpoint no público |
-| `currentAlgoOpenOrders` | Ver algo orders abiertas | ✅ Responde (vacío si no hay) |
-| `historicalAlgoOrder` | Historial de algo orders | Sin validar |
-| `subOrders` | Sub-órdenes generadas por una algo order | Sin validar |
-
----
-
-## Cuenta
-
-| Tool | Descripción |
-|---|---|
-| `getAccount` | Balance y permisos de la cuenta spot |
-| `myTrades` | Historial de trades ejecutados |
-| `rateLimitOrder` | Límites de rate de la cuenta |
-| `dailyAccountSnapshot` | Snapshot diario de balance |
-| `accountStatus` | Estado general de la cuenta |
-| `getApiKeyPermission` | Permisos habilitados en la API key |
-
----
-
-## Simple Earn
-
-| Tool | Descripción |
-|---|---|
-| `simpleEarnFlexibleProductList` | Lista de productos disponibles |
-| `getFlexibleProductPosition` | Posiciones actuales |
-| `subscribeFlexibleProduct` | Suscribirse a un producto |
-| `redeemFlexibleProduct` | Retirar de un producto |
-
----
-
-## Wallet / Activos
-
-| Tool | Descripción |
-|---|---|
-| `userAsset` | Balance de todos los activos |
-| `fundingWallet` | Balance de la wallet de funding |
-| `assetDetail` | Detalle de un activo específico |
-| `systemStatus` | Estado operacional de Binance |
-
----
-
-## Diagnóstico (custom)
-
-| Tool | Descripción |
-|---|---|
-| `BinanceDiagnostic` | Verifica configuración de keys y conectividad |
-
----
-
-## Plan de validación pendiente — Testnet
-
-Antes de operar con capital real, validar estos tipos de órdenes en la testnet de futuros:
-`https://testnet.binancefuture.com`
-
-Pasos:
-1. Crear cuenta en testnet.binancefuture.com
-2. Generar API keys de testnet
-3. Cambiar el endpoint base en el código: `fapi.binance.com` → `testnet.binancefuture.com`
-4. Probar cada tipo de orden de la tabla de abajo
-5. Documentar resultado antes de usar con capital real
-
-| Tipo de orden | Probado real | Probado testnet | Funciona | Notas |
-|---|---|---|---|---|
-| LIMIT (entry) | ✅ | ✅ | ✅ | Funciona perfectamente en ambos entornos |
-| MARKET (entry) | ❌ | ✅ | ✅ | Validado en testnet, sin razón para fallar en real |
-| LIMIT (close/stop manual) | ✅ | — | ⚠️ | Binance limita precio al 5% del mark price — cerró posición accidentalmente |
-| STOP_MARKET | ✅ | ✅ | ❌ | Error -4120 en ambos entornos. Binance lo redirige a Algo Order API (no pública) |
-| STOP (limit stop) | ✅ | ✅ | ❌ | Error -4120 en ambos entornos |
-| TAKE_PROFIT_MARKET | ❌ | ✅ | ❌ | Error -4120 en testnet |
-| TAKE_PROFIT | ❌ | ✅ | ❌ | Error -4120 en testnet |
-| TRAILING_STOP_MARKET | ❌ | ✅ | ❌ | Error -4120 en testnet |
-
-**Conclusión validada (testnet + real, 2026-04-16) — DEFINITIVA:**
-
-| Endpoint | Tipo | Resultado | Notas |
+| Parámetro | Tipo | Requerido | Descripción |
 |---|---|---|---|
-| `/fapi/v1/order` | LIMIT | ✅ Funciona | Entradas y cierres planificados |
-| `/fapi/v1/order` | MARKET | ✅ Funciona | Entradas y cierres inmediatos |
-| `/fapi/v1/order` | STOP_MARKET | ❌ -4120 | Bloqueado por Binance |
-| `/fapi/v1/order` | STOP | ❌ -4120 | Bloqueado por Binance |
-| `/fapi/v1/order` | TAKE_PROFIT_MARKET | ❌ -4120 | Bloqueado por Binance |
-| `/fapi/v1/order` | TAKE_PROFIT | ❌ -4120 | Bloqueado por Binance |
-| `/fapi/v1/order` | TRAILING_STOP_MARKET | ❌ -4120 | Bloqueado por Binance |
-| `/fapi/v1/order/oco` | OCO | ❌ -5000 | Endpoint no existe en futuros |
-| `/fapi/v1/batchOrders` | Batch | ⚠️ HTTP OK pero órdenes internas -4120 | El endpoint existe pero las órdenes condicionales siguen bloqueadas |
-| `/fapi/v1/conditional/order` | Condicional | ❌ -5000 | Endpoint no existe |
+| `symbol` | string | ✅ | Par, ej. `SOLUSDT` |
+| `side` | BUY \| SELL | ✅ | Dirección de la orden |
+| `type` | MARKET \| LIMIT \| ... | ✅ | Tipo de orden (ver tabla de soporte abajo) |
+| `quantity` | number | ✅ | Cantidad en base asset. Si conocés USDT: `qty = usdt / precio` |
+| `positionSide` | LONG \| SHORT \| BOTH | ⚠️ | **Obligatorio si la cuenta está en Hedge Mode** (la cuenta real sí lo está). LONG para posiciones long, SHORT para shorts. Omitir solo en One-way Mode (testnet). |
+| `price` | number | Para LIMIT | Precio límite |
+| `timeInForce` | GTC \| IOC \| FOK \| GTX | Opcional | Default GTC para LIMIT. GTX = post-only (maker) |
+| `leverage` | 1-125 | Opcional | Si se pasa, setea el leverage antes de la orden |
+| `marginType` | ISOLATED \| CROSSED | Opcional | Si se pasa, cambia el tipo de margen antes de la orden. Falla silenciosamente si ya estaba seteado (-4046). |
+| `reduceOnly` | boolean | Opcional | Solo reduce posición existente. **No usar junto con `positionSide`** en Hedge Mode — son incompatibles. |
+| `newClientOrderId` | string | Opcional | ID propio para tracking |
 
-**Conclusión:** Binance bloquea deliberadamente TODAS las órdenes condicionales en la API pública de futuros.
-Solo `LIMIT` y `MARKET` están disponibles. No hay workaround via REST API.
+**Tipos de orden soportados (validado testnet 2026-04-16):**
 
-**Estrategia de operación adaptada:**
-- Abrir posición con `LIMIT` o `MARKET` ✅
-- Colocar orden de cierre con `LIMIT` en el nivel de TP ✅
-- Stop loss = orden `LIMIT` de cierre monitoreada manualmente ⚠️
-- Cuando Claude detecta precio cerca del stop → cerrar con `MARKET` manual
-- Esta modalidad es viable para el estilo consultivo (no autónomo) del sistema
+| Tipo | Estado | Cómo usarlo |
+|---|---|---|
+| `LIMIT` | ✅ Funciona | Entradas escalonadas, Take Profit. Precio debe estar sobre el mercado para SELL SHORT que espera spike. |
+| `MARKET` | ✅ Funciona | Cierre de emergencia, entrada inmediata |
+| `STOP_MARKET` | ❌ Bloqueado | "Order type not supported — use Algo Order API" — colocar desde UI de Binance |
+| `TAKE_PROFIT_MARKET` | ❌ Bloqueado | Ídem — UI de Binance |
+| `TRAILING_STOP_MARKET` | ❌ Bloqueado | Ídem — UI de Binance |
+
+> **Workaround para Stop Loss:** colocar desde UI de Binance → Futures → posición → Add SL/TP.
+> Claude monitorea el precio y avisa cuando acercarse al stop → el usuario cierra con MARKET si es necesario.
+
+**Capacidades adicionales que hace antes de la orden (en el mismo llamado):**
+- Setea leverage: `leverage: 3`
+- Setea margen a Isolated: `marginType: "ISOLATED"`
+- Ambas pueden combinarse con la orden en un solo llamado
 
 ---
 
-## Notas importantes — validadas en sesión real (2026-04-15)
+### `BinanceCustomGridCandidateAnalyzer` — Análisis de candidatos para grids
 
-- Las tools de **mercado** no requieren API keys — ideales para análisis previo
-- **Órdenes LIMIT/MARKET en futuros funcionan** via `/fapi/v1/order` directamente con axios
-- La cuenta tiene **Hedge Mode activo** — todas las órdenes de futuros requieren `positionSide: LONG` o `SHORT`
-- El timestamp debe obtenerse del **servidor de Binance** (`/fapi/v1/time`), no del sistema local — hay desfase
-- `MIN_NOTIONAL` real de ETHUSDT futuros es **$20 USDT** (no $1,000 — ese límite es solo del validador del MCP)
-- Los grids creados desde la UI de Binance **no son visibles via API** ni modificables
-- Las tools de algo orders (TWAP, VP, Grid) están implementadas en el MCP pero **sus endpoints no son públicos**
+Automatiza el análisis que antes se hacía manualmente con scripts.
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `symbol` | string (opcional) | Si se pasa, analiza ese par específico. Si no, escanea los top N pares USDT. |
+| `topN` | number | Cuántos pares escanear (default 20) |
+| `capital` | number | Capital a asignar al grid |
+| `leverage` | number | Leverage a simular |
+
+**Qué calcula internamente:**
+- ATR (volatilidad promedio)
+- Kaufman Efficiency Ratio (lateralización vs tendencia)
+- Correlación con BTC
+- Spread del orderbook
+- Rango óptimo sugerido (basado en ATR 30d)
+- Profit por grid neto de fees
+- Backtest realista sobre klines 1m con breakdown por ventana temporal
+
+> ⚠️ **Nota:** este analizador usa klines del spot (`api.binance.com`), no de futuros (`fapi.binance.com`).
+> Para análisis de futuros el precio es prácticamente igual, pero el funding rate y el volumen de futuros
+> no están incluidos. Complementar con consulta manual de funding antes de confirmar la estrategia.
+
+---
+
+## Qué puede hacer el SDK de Futuros — tabla completa (validado testnet 2026-04-16)
+
+Estas capacidades están disponibles via `usdsFuturesClient` en el MCP.
+Las marcadas ✅ pueden agregarse como nuevas tools si se necesitan.
+
+| Capacidad | SDK method | Estado | Uso en nuestro sistema |
+|---|---|---|---|
+| Colocar LIMIT | `newOrder` | ✅ | BinanceCustomFuturesNewOrder (ya disponible) |
+| Colocar MARKET | `newOrder` | ✅ | BinanceCustomFuturesNewOrder (ya disponible) |
+| Cancelar orden | `cancelOrder` | ✅ | BinanceCustomFuturesNewOrder podría extenderse |
+| Cancelar todas | `cancelAllOpenOrders` | ✅ | No expuesto en MCP aún |
+| Modificar orden | `modifyOrder` | ✅ | No expuesto en MCP aún |
+| Ver órdenes abiertas | `currentAllOpenOrders` | ✅ | Se hace via script |
+| Historial de órdenes | `allOrders` | ✅ | Se hace via script |
+| Balance USDT | `futuresAccountBalanceV2` | ✅ | Se hace via script |
+| Posición abierta | `positionInformationV2` | ✅ | Se hace via script |
+| Mark price + funding | `markPrice` | ✅ | Se hace via script |
+| Historial funding | `getFundingRateHistory` | ✅ | Se hace via script |
+| Klines (velas) | `klineCandlestickData` | ✅ | Se hace via script |
+| Ticker 24h | `ticker24hrPriceChangeStatistics` | ✅ | Se hace via script |
+| Orderbook | `orderBook` | ✅ | Se hace via script |
+| Exchange info (filtros/status) | `exchangeInformation` | ✅ | Se hace via script |
+| Setear leverage | `changeInitialLeverage` | ✅ | Dentro de BinanceCustomFuturesNewOrder |
+| Setear margen | `changeMarginType` | ✅ | Dentro de BinanceCustomFuturesNewOrder |
+| Ver modo posición | `getCurrentPositionMode` | ✅ | Se hace via script |
+| STOP_MARKET | `newOrder` | ❌ | Bloqueado por Binance (API pública) |
+| TAKE_PROFIT_MARKET | `newOrder` | ❌ | Bloqueado por Binance |
+| TRAILING_STOP_MARKET | `newOrder` | ❌ | Bloqueado por Binance |
+| Grid bots | — | ❌ | Solo desde UI de Binance |
+
+---
+
+## Modelo híbrido de trabajo
+
+### Qué hace Claude via MCP/SDK
+
+```
+BinanceCustomFuturesNewOrder → entradas LIMIT escalonadas
+BinanceCustomFuturesNewOrder → Take Profit LIMIT
+BinanceCustomFuturesNewOrder → cierre MARKET de emergencia
+BinanceCustomGridCandidateAnalyzer → análisis de candidatos para grids
+scripts (Bash) → consulta de precios, RSI, funding, orderbook, balance
+```
+
+### Qué hace el usuario manualmente desde UI de Binance
+
+```
+Stop Loss        → Futures → posición → Add SL/TP
+Trailing Stop    → Futures → posición → Trailing Stop
+Grid bots        → Futures → Bot Trading → Grid
+```
+
+---
+
+## Testnet vs Producción
+
+| Aspecto | Testnet | Producción |
+|---|---|---|
+| URL | `testnet.binancefuture.com` | `fapi.binance.com` (default del SDK) |
+| Hedge Mode | ❌ One-way (`dualSidePosition: false`) | ✅ Activo (`positionSide` requerido) |
+| `positionSide` en órdenes | No enviar (error si se envía) | Obligatorio: `LONG` o `SHORT` |
+| `reduceOnly` | Puede usarse | No usar junto con `positionSide` |
+| Keys | `build/.env.testnet` | `build/.env` |
+| Saldo USDT | ~$4,932 (ficticio) | Real |
+
+**Regla de trabajo:** siempre probar en testnet primero cuando se cambia la estructura de una estrategia.
+Para tipos de orden ya validados (LIMIT/MARKET), no hace falta re-validar en cada operación.
+
+---
+
+## Herramientas de Spot — para referencia
+
+> Estas tools existen en el MCP pero no se usan para futuros. Se listan para completitud.
+
+### Mercado Spot (sin autenticación)
+
+| Tool | Descripción |
+|---|---|
+| `BinanceKlines` | Velas OHLCV — **útil para análisis histórico** (usa api.binance.com) |
+| `BinanceTicker24hr` | Stats 24h de spot |
+| `BinanceTickerPrice` | Precio spot actual |
+| `BinanceOrderBook` | Orderbook spot con métricas |
+| `BinanceDepth` | Orderbook raw |
+| `BinanceAggTrades` | Trades recientes |
+
+### Spot Trading (autenticado)
+
+| Tool | Descripción |
+|---|---|
+| `BinanceNewOrder` | Crear orden spot |
+| `BinanceCancelOrder` | Cancelar orden spot |
+| `BinanceGetOpenOrders` | Órdenes spot abiertas |
+| `BinanceAllOrders` | Historial spot |
+| `BinanceOrderOco` | OCO spot (sí funciona en spot, no en futuros) |
+
+### Algo Orders (no públicos)
+
+> Implementados en el MCP pero los endpoints de Binance no son públicos → no funcionan.
+
+| Tool | Estado |
+|---|---|
+| `BinanceTimeWeightedAveragePriceNewOrder` | ❌ 404 |
+| `BinanceCreateFutureGrid` | ❌ 404 |
+| `cancelAlgoOrder` | ❌ 404 |
+
+---
+
+## Diagnóstico
+
+| Tool | Descripción |
+|---|---|
+| `BinanceDiagnostic` | Verifica API keys y conectividad básica |
+| `BinanceTotalEstimatedValue` | Valor total estimado de la cuenta spot |

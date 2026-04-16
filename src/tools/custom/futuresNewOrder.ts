@@ -6,20 +6,21 @@ import { usdsFuturesClient } from "../../config/binanceClient.js";
 export function registerBinanceFuturesNewOrder(server: McpServer) {
     server.tool(
         "BinanceCustomFuturesNewOrder",
-        "Place a new order on Binance USDⓈ-M Futures (BTCUSDT, ETHUSDT, etc.). Supports MARKET and LIMIT orders with optional leverage and margin-type setup. ⚠️ Real money. Always double-check parameters before calling.",
+        "Place a new order on Binance USDⓈ-M Futures (BTCUSDT, ETHUSDT, etc.). Supports MARKET and LIMIT orders with optional leverage and margin-type setup. ⚠️ Real money. Always double-check parameters before calling. NOTE: if the account is in Hedge Mode, positionSide (LONG or SHORT) is required on every order.",
         {
             symbol: z.string().describe("Trading pair, e.g. BTCUSDT"),
             side: z.enum(["BUY", "SELL"]).describe("Order direction"),
             type: z.enum(["MARKET", "LIMIT", "STOP", "STOP_MARKET", "TAKE_PROFIT", "TAKE_PROFIT_MARKET"]).describe("Order type"),
             quantity: z.number().positive().describe("Base-asset quantity (e.g. 0.001 BTC). If you only know USDT amount, compute qty = usdt / price first."),
+            positionSide: z.enum(["LONG", "SHORT", "BOTH"]).optional().describe("Required when account is in Hedge Mode. LONG for long positions, SHORT for short positions. Omit (or use BOTH) for One-way Mode accounts."),
             price: z.number().positive().optional().describe("Price (required for LIMIT)"),
             timeInForce: z.enum(["GTC", "IOC", "FOK", "GTX"]).optional().describe("Default GTC for LIMIT. GTX = post-only (maker)."),
-            reduceOnly: z.boolean().optional().describe("True = only reduce existing position (no new entries)"),
+            reduceOnly: z.boolean().optional().describe("True = only reduce existing position (no new entries). Cannot be used together with positionSide in Hedge Mode."),
             leverage: z.number().min(1).max(125).optional().describe("If provided, sets leverage for the symbol before placing the order"),
             marginType: z.enum(["ISOLATED", "CROSSED"]).optional().describe("If provided, sets margin type before placing the order. Fails silently if already set."),
             newClientOrderId: z.string().optional().describe("Your own tracking id")
         },
-        async ({ symbol, side, type, quantity, price, timeInForce, reduceOnly, leverage, marginType, newClientOrderId }) => {
+        async ({ symbol, side, type, quantity, positionSide, price, timeInForce, reduceOnly, leverage, marginType, newClientOrderId }) => {
             try {
                 const notes: string[] = [];
 
@@ -48,10 +49,12 @@ export function registerBinanceFuturesNewOrder(server: McpServer) {
                 }
 
                 const params: any = { symbol, side, type, quantity };
+                if (positionSide !== undefined) params.positionSide = positionSide;
                 if (price !== undefined) params.price = price;
                 if (timeInForce !== undefined) params.timeInForce = timeInForce;
                 else if (type === "LIMIT") params.timeInForce = "GTC";
-                if (reduceOnly !== undefined) params.reduceOnly = reduceOnly ? "true" : "false";
+                // reduceOnly is incompatible with positionSide in Hedge Mode — skip if positionSide is set
+                if (reduceOnly !== undefined && !positionSide) params.reduceOnly = reduceOnly ? "true" : "false";
                 if (newClientOrderId) params.newClientOrderId = newClientOrderId;
 
                 const response = await (usdsFuturesClient.restAPI as any).newOrder(params);
