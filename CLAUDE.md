@@ -71,12 +71,14 @@ Toma decisiones finales siempre él — Claude analiza, propone y ejecuta solo c
    🔴 Acción sugerida: [qué hacer]
 ```
 
+Tools: `BinanceCustomFuturesBotStatus` por cada bot + `BinanceCustomFuturesAccount` para balance general.
+
 ### Consulta de oportunidades ("¿qué encontrás hoy?")
 
-1. Obtener tickers + `exchangeInfo` en paralelo → filtrar solo `status=TRADING`
-2. Consultar `availableBalance` → mostrar capital disponible al inicio del reporte
+1. `BinanceCustomFuturesAccount` → obtener balance disponible al inicio
+2. Script Bash (único caso válido): obtener tickers + `exchangeInfo` para filtrar candidatos por volumen/pump — no hay tool MCP para escaneo masivo
 3. Filtrar candidatos (pumpeadas >20% volumen >$5M | laterales ±3% >$10M | momentum alcista)
-4. Analizar en detalle: RSI, MACD, funding (dos fuentes), ATR, orderbook
+4. Para cada candidato: `BinanceCustomFuturesAnalyze` → RSI, funding, velas, orderbook en un llamado
 5. Reportar con semáforo honesto: ✅ setup claro / ⚠️ señales mixtas / ❌ no operar
 
 **Investigación profunda antes de proponer cualquier trade (OBLIGATORIO):**
@@ -154,24 +156,18 @@ Después de confirmar entradas, Claude muestra siempre:
 
 ---
 
-## Capacidades técnicas
+## Capacidades técnicas — Via MCP (usar SIEMPRE, nunca scripts Bash)
 
-### Via MCP (usar siempre para órdenes)
-
-| Acción | Tool | Estado |
+| Cuándo usarla | Tool | Descripción |
 |---|---|---|
-| Orden LIMIT / MARKET | `BinanceCustomFuturesNewOrder` | ✅ |
-| Leverage + margen Isolated | Mismo llamado | ✅ |
-| Análisis candidatos grid | `BinanceCustomGridCandidateAnalyzer` | ✅ |
-| STOP_MARKET / TRAILING_STOP | — | ❌ Bloqueado por Binance → UI |
+| Analizar símbolo Pilar 2 | `BinanceCustomFuturesAnalyze` | Precio, RSI 1h, funding (2 fuentes + semáforo), velas 4h/15m, orderbook, pump %. Un llamado reemplaza todos los scripts de análisis. |
+| Estado de cuenta | `BinanceCustomFuturesAccount` | Balance USDT disponible, posiciones abiertas, órdenes abiertas. Usar al inicio de sesión y antes de operar. |
+| Chequeo diario bots Pilar 1 | `BinanceCustomFuturesBotStatus` | Precio, % en rango, distancia a stop/techo, funding, alertas automáticas. Pasar symbol + rangeMin + rangeMax + stopLoss. |
+| Colocar órdenes | `BinanceCustomFuturesNewOrder` | LIMIT/MARKET con leverage y margin. Siempre positionSide SHORT/LONG en producción. |
+| Analizar candidatos grid | `BinanceCustomGridCandidateAnalyzer` | ATR, Kaufman ER, backtest 1m. Complementar con funding manual. |
+| STOP_MARKET / TRAILING_STOP | — | ❌ Bloqueado por Binance → configurar desde UI |
 
-### Via script Bash (consultas de mercado)
-
-| Acción | Endpoint |
-|---|---|
-| Tickers futuros | `/fapi/v1/ticker/24hr` |
-| Precio, klines, funding, orderbook | SDK: `markPrice`, `klineCandlestickData`, `getFundingRateHistory` |
-| Balance y posiciones | SDK: `futuresAccountBalanceV2`, `positionInformationV2` |
+**Regla:** nunca usar scripts Bash node para consultas que ya tienen tool MCP. Los scripts solo como último recurso si una tool falla.
 
 → **Referencia completa: `docs/api-reference/capacidades-mcp.md`**
 
