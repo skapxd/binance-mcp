@@ -227,12 +227,34 @@ Cuando Claude presenta una estrategia, la divide en dos secciones claras:
 
 Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
 
+### Protocolo de entorno — declarar SIEMPRE antes de ejecutar
+
+El usuario se guía por esto para saber si es simulación o dinero real.
+
+**Testnet:**
+```
+🔵 ENTORNO: TESTNET — build/.env.testnet
+```
+
+**Producción — mostrar alerta y esperar confirmación explícita:**
+```
+🔴 ENTORNO: PRODUCCIÓN — build/.env — dinero real
+⚠️  ALERTA: estamos por ejecutar una orden con dinero real.
+    Par: XXXUSDT | Tipo: SELL SHORT LIMIT | Precio: $X.XX | Qty: XX
+    Confirmás? (sí / no)
+```
+
+Esta alerta se muestra **siempre** antes de producción, aunque el usuario ya haya
+confirmado la estrategia. Es la última verificación antes de tocar capital real.
+
 ### Orden de ejecución
-1. Claude coloca todas las LIMIT entries
-2. Claude coloca el/los LIMIT de Take Profit
-3. Claude informa al usuario qué debe hacer manualmente (SL, trailing, etc.)
-4. Usuario confirma que colocó el SL manual
-5. Registrar en watchlist
+1. Declarar entorno (🔵 testnet / 🔴 producción + alerta)
+2. Esperar confirmación del usuario si es producción
+3. Claude coloca todas las LIMIT entries
+4. Claude coloca el/los LIMIT de Take Profit **solo después que llene alguna entrada** (lección ORDI: -2022 en Hedge Mode si no hay posición abierta)
+5. Claude informa al usuario qué debe hacer manualmente (SL desde UI)
+6. Usuario confirma que colocó el SL manual
+7. Registrar en watchlist
 
 ### Durante la operación
 - Claude verifica precio y estado cuando el usuario lo consulta

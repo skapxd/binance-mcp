@@ -165,6 +165,29 @@ Claude NO ejecuta su parte hasta que el usuario confirma que entendió ambas par
 Ver formato exacto en `docs/protocolo-operativo.md` → Paso 5.
 
 ### Ejecución de órdenes
+
+#### Identificación de entorno — OBLIGATORIO antes de cada ejecución
+
+Antes de correr cualquier script o llamar cualquier tool que conecte a Binance, declarar
+explícitamente el entorno. El usuario se guía por esto para saber si es real o simulación.
+
+**Formato obligatorio al inicio de cada ejecución:**
+
+```
+🔵 ENTORNO: TESTNET  — build/.env.testnet — fapi: testnet.binancefuture.com
+```
+o
+```
+🔴 ENTORNO: PRODUCCIÓN — build/.env — fapi: fapi.binance.com
+⚠️  ALERTA: estamos por ejecutar una orden con dinero real.
+    Par: XXXUSDT | Tipo: SELL SHORT LIMIT | Precio: $X.XX | Qty: XX
+    Confirmás? (sí / no)
+```
+
+La alerta de producción se muestra **siempre**, incluso si el usuario ya confirmó la estrategia
+antes. Es la última línea de defensa antes de tocar capital real.
+
+#### Reglas de ejecución
 - Siempre mostrar la estructura completa antes de ejecutar
 - Esperar confirmación explícita del usuario ("ok", "ejecuta", "adelante")
 - Nunca ejecutar por iniciativa propia
@@ -172,8 +195,15 @@ Ver formato exacto en `docs/protocolo-operativo.md` → Paso 5.
 - **Usar `BinanceCustomFuturesNewOrder`** para colocar órdenes — no scripts Bash manuales
   - Pasar `positionSide: "SHORT"` o `"LONG"` según la estrategia
   - Pasar `leverage` y `marginType: "ISOLATED"` en la primera orden de cada par
-  - El SDK maneja el timestamp automáticamente (no hace falta tomarlo de `/fapi/v1/time`)
+  - El SDK maneja el timestamp automáticamente
 - Para consultas de mercado (precios, RSI, funding, balance) → scripts Bash (no hay tool MCP aún)
+
+#### Diferencias clave testnet vs producción
+| Aspecto | Testnet | Producción |
+|---|---|---|
+| Archivo .env | `build/.env.testnet` | `build/.env` |
+| `positionSide` | NO enviar (One-way Mode) | OBLIGATORIO: LONG o SHORT |
+| Alerta previa | No requerida | ⚠️ Siempre mostrar antes de ejecutar |
 
 ---
 
