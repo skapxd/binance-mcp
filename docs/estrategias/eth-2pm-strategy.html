@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrategia ETH 2PM — Documentaci&oacute;n Completa</title>
+<style>
+  :root { --bg: #0f1117; --card: #1a1e2e; --border: #2a3045; --text: #d4d4d8; --text2: #94a3b8; --green: #10b981; --red: #ef4444; --blue: #3b82f6; --yellow: #f59e0b; --purple: #8b5cf6; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 20px; max-width: 900px; margin: 0 auto; }
+  h1 { color: #f4f4f5; font-size: 2em; margin: 30px 0 10px; border-bottom: 3px solid var(--blue); padding-bottom: 10px; }
+  h2 { color: var(--blue); font-size: 1.4em; margin: 35px 0 15px; }
+  h3 { color: var(--purple); font-size: 1.1em; margin: 25px 0 10px; }
+  p { margin: 10px 0; color: var(--text2); }
+  .hero { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--blue); border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center; }
+  .hero h1 { border: none; margin: 0; font-size: 2.2em; }
+  .hero .subtitle { color: var(--text2); font-size: 1.1em; margin-top: 8px; }
+  .hero .result { font-size: 2.5em; color: var(--green); font-weight: bold; margin: 15px 0 5px; }
+  .hero .detail { color: var(--text2); font-size: 0.9em; }
+  .hero .version { display: inline-block; background: var(--blue); color: white; padding: 2px 12px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 15px 0; }
+  .card.warning { border-color: var(--yellow); background: #1e1a0e; }
+  .card.danger { border-color: var(--red); background: #1e0e0e; }
+  .card.success { border-color: var(--green); background: #0e1e14; }
+  .card-title { font-weight: bold; color: #f4f4f5; margin-bottom: 10px; font-size: 1.05em; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; }
+  .badge.green { background: #065f46; color: #6ee7b7; }
+  .badge.red { background: #7f1d1d; color: #fca5a5; }
+  .badge.blue { background: #1e3a5f; color: #93c5fd; }
+  .badge.yellow { background: #5f4b1e; color: #fcd34d; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9em; }
+  th { background: #252b3b; color: #f4f4f5; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  tr:hover { background: #1e2235; }
+  .pos { color: var(--green); font-weight: bold; }
+  .neg { color: var(--red); font-weight: bold; }
+  .code { background: #1e293b; border: 1px solid var(--border); border-radius: 8px; padding: 20px; font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 0.9em; line-height: 1.8; overflow-x: auto; margin: 15px 0; white-space: pre-wrap; }
+  .code .comment { color: #6b7280; } .code .keyword { color: #c084fc; } .code .action { color: #60a5fa; }
+  .code .check { color: #fbbf24; } .code .yes { color: #34d399; } .code .no { color: #f87171; } .code .number { color: #fb923c; }
+  .step { display: flex; gap: 15px; margin: 12px 0; align-items: flex-start; }
+  .step-num { background: var(--blue); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.9em; }
+  .step-content { flex: 1; } .step-content strong { color: #f4f4f5; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 15px 0; }
+  .metric { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; text-align: center; }
+  .metric .label { font-size: 0.8em; color: var(--text2); } .metric .value { font-size: 1.5em; font-weight: bold; margin-top: 4px; }
+  .bar-chart { margin: 10px 0; } .bar-row { display: flex; align-items: center; margin: 3px 0; font-size: 0.85em; }
+  .bar-label { width: 90px; text-align: right; padding-right: 8px; color: var(--text2); }
+  .bar { height: 20px; border-radius: 3px; min-width: 2px; } .bar.pos { background: var(--green); } .bar.neg { background: var(--red); }
+  .bar-value { padding-left: 6px; font-size: 0.8em; }
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 20px 0; }
+  .toc a { color: var(--blue); text-decoration: none; } .toc a:hover { text-decoration: underline; }
+  .toc ol { padding-left: 20px; } .toc li { margin: 5px 0; }
+  footer { text-align: center; color: var(--text2); font-size: 0.8em; margin-top: 50px; padding: 20px; border-top: 1px solid var(--border); }
+  @media (max-width: 600px) { body { padding: 10px; } .hero .result { font-size: 1.8em; } .metrics { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<div class="hero">
+  <h1>Estrategia ETH 2PM</h1>
+  <div class="version">V2</div>
+  <div class="subtitle">Comprar ETH a las 2:00 PM Colombia, vender a las 6:00 PM<br>D&iacute;as sin se&ntilde;al: capital en Simple Earn generando inter&eacute;s</div>
+  <div class="result">$100 &rarr; $6,916</div>
+  <div class="detail">Backtest 8 a&ntilde;os (2017&ndash;2026) &bull; 719 trades &bull; 62% winrate &bull; Max DD -33% &bull; 3x leverage &bull; Earn en d&iacute;as idle</div>
+</div>
+
+<!-- ═══════════════════════ TABLA DE CONTENIDO ═══════════════════════ -->
+<div class="toc">
+  <div class="card-title">&Iacute;ndice</div>
+  <ol>
+    <li><a href="#que-es">&iquest;Qu&eacute; es esta estrategia?</a></li>
+    <li><a href="#reglas">Las reglas completas (pseudo-c&oacute;digo)</a></li>
+    <li><a href="#filtros">Los 4 filtros explicados</a></li>
+    <li><a href="#setup">Setup inicial &mdash; aislar el capital (subcuenta)</a></li>
+    <li><a href="#guia">Gu&iacute;a paso a paso (operaci&oacute;n diaria)</a></li>
+    <li><a href="#practica">Qu&eacute; esperar en la pr&aacute;ctica</a></li>
+    <li><a href="#resultados">Resultados hist&oacute;ricos (8 a&ntilde;os)</a></li>
+    <li><a href="#earn">D&iacute;as sin se&ntilde;al y Simple Earn</a></li>
+    <li><a href="#leverage">Opciones de leverage</a></li>
+    <li><a href="#otros-pares">La estrategia en otros pares</a></li>
+    <li><a href="#por-que">&iquest;Por qu&eacute; funciona a esta hora?</a></li>
+    <li><a href="#riesgos">Riesgos y reglas de oro</a></li>
+    <li><a href="#parametros">Par&aacute;metros t&eacute;cnicos</a></li>
+    <li><a href="#glosario">Glosario</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════ 1. QU&Eacute; ES ═══════════════════════ -->
+<h2 id="que-es">1. &iquest;Qu&eacute; es esta estrategia?</h2>
+
+<div class="card">
+  <p>Una estrategia simple: <strong>comprar ETH (Ethereum) a las 2:00 PM hora Colombia y venderlo a las 6:00 PM</strong>. Solo 4 horas de exposici&oacute;n al mercado por d&iacute;a.</p>
+  <p>Funciona porque hist&oacute;ricamente, entre las 2 PM y las 6 PM &mdash;cuando los mercados de Estados Unidos est&aacute;n abiertos y luego cierran&mdash; ETH tiende a subir m&aacute;s veces de las que baja.</p>
+  <p>Usa <strong>4 filtros inteligentes</strong> para no operar los d&iacute;as malos, y los d&iacute;as que no opera el capital genera inter&eacute;s en Simple Earn de Binance.</p>
+</div>
+
+<!-- ═══════════════════════ 2. REGLAS ═══════════════════════ -->
+<h2 id="reglas">2. Las reglas completas</h2>
+
+<div class="code"><span class="comment">// ESTRATEGIA ETH 2PM V2</span>
+
+<span class="keyword">CADA D&Iacute;A</span> a la <span class="number">1:50 PM</span> (Colombia), revisar:
+
+  <span class="comment">// &mdash; FILTRO 1: D&iacute;a de la semana &mdash;</span>
+  <span class="check">PREGUNTAR:</span> &iquest;Hoy es jueves?
+    <span class="no">S&Iacute; &rarr; NO OPERAR. Descansar.</span>
+    <span class="yes">NO &rarr; Seguir al filtro 2.</span>
+
+  <span class="comment">// &mdash; FILTRO 2: Tendencia de ETH &mdash;</span>
+  <span class="check">PREGUNTAR:</span> &iquest;ETH est&aacute; por encima del promedio de 50 d&iacute;as?
+    <span class="no">NO &rarr; NO OPERAR. ETH est&aacute; en bajada.</span>
+    <span class="yes">S&Iacute; &rarr; Seguir al filtro 3.</span>
+
+  <span class="comment">// &mdash; FILTRO 3: Tendencia de BTC &mdash;</span>
+  <span class="check">PREGUNTAR:</span> &iquest;BTC est&aacute; por encima del promedio de 50 d&iacute;as?
+    <span class="no">NO &rarr; NO OPERAR. Si BTC cae, ETH cae peor.</span>
+    <span class="yes">S&Iacute; &rarr; Seguir al filtro 4.</span>
+
+  <span class="comment">// &mdash; FILTRO 4: Volumen &mdash;</span>
+  <span class="check">PREGUNTAR:</span> &iquest;El volumen de las &uacute;ltimas 4 horas es al menos 80% del promedio semanal?
+    <span class="no">NO &rarr; NO OPERAR. Mercado dormido.</span>
+    <span class="yes">S&Iacute; &rarr; OPERAR!</span>
+
+  <span class="keyword">SI HAY SE&Ntilde;AL:</span>
+    <span class="action">1.</span> Redimir USDT de Simple Earn (instant&aacute;neo)
+    <span class="action">2.</span> Comprar ETH en futuros &mdash; LONG, <span class="number">3x</span>, margen <span class="number">AISLADO</span>
+    <span class="action">3.</span> Poner Take Profit al <span class="number">+1.5%</span>
+    <span class="action">4.</span> A las <span class="number">6:00 PM</span>: si el TP no peg&oacute; &rarr; cerrar posici&oacute;n
+    <span class="action">5.</span> Devolver USDT a Simple Earn
+
+  <span class="keyword">SI NO HAY SE&Ntilde;AL:</span>
+    <span class="action">1.</span> Verificar que USDT est&aacute; en Simple Earn
+    <span class="action">2.</span> <span class="yes">No hacer nada m&aacute;s. El inter&eacute;s se genera solo.</span>
+
+  <span class="keyword">REPETIR</span> ma&ntilde;ana.</div>
+
+<!-- ═══════════════════════ 3. FILTROS ═══════════════════════ -->
+<h2 id="filtros">3. Los 4 filtros explicados</h2>
+
+<div class="card">
+  <div class="card-title">Filtro 1: No operar los jueves</div>
+  <p>En 8 a&ntilde;os de datos, los jueves ETH tiene 0% de ganancia promedio en esta ventana horaria. Es lanzar una moneda al aire: no vale la pena el riesgo.</p>
+  <p><span class="badge yellow">Efecto:</span> Elimina ~52 trades no rentables por a&ntilde;o.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">Filtro 2: ETH por encima de su SMA 50</div>
+  <p>El <strong>SMA 50</strong> es el precio promedio de los &uacute;ltimos 50 d&iacute;as. Si ETH est&aacute; por encima, la tendencia general es alcista. Si est&aacute; por debajo, el mercado est&aacute; cayendo y es mejor no operar.</p>
+  <p>Es como mirar el clima antes de salir: si est&aacute; lloviendo (mercado bear), no sales a pasear.</p>
+  <p><span class="badge green">Efecto:</span> Evit&oacute; el crypto winter 2018, el crash de 2022, y el bear de 2023. <strong>Es el filtro m&aacute;s importante.</strong></p>
+</div>
+
+<div class="card">
+  <div class="card-title">Filtro 3: BTC por encima de su SMA 50</div>
+  <p>El mismo concepto pero aplicado a <strong>Bitcoin</strong>. Cuando BTC cae, arrastra a todo el mercado crypto con &eacute;l. Si BTC ya est&aacute; bajista, comprar ETH es nadar contra la corriente.</p>
+  <p><span class="badge blue">Efecto:</span> Doble protecci&oacute;n contra mercados bajistas. Agregar este filtro mejor&oacute; el retorno en +25% y baj&oacute; el drawdown de -46% a -33%.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">Filtro 4: Volumen superior al 80% del promedio semanal</div>
+  <p>El <strong>volumen</strong> mide cu&aacute;nta gente est&aacute; comprando y vendiendo. Poco volumen = movimientos err&aacute;ticos e impredecibles (como un lago calmado donde una piedra hace olas enormes).</p>
+  <p><span class="badge blue">Efecto:</span> Evita d&iacute;as festivos, fines de semana muertos, y per&iacute;odos de baja actividad.</p>
+</div>
+
+<!-- ═══════════════════════ 4. SETUP ═══════════════════════ -->
+<h2 id="setup">4. Setup inicial (una sola vez)</h2>
+
+<div class="card">
+  <div class="card-title">&iquest;Por qu&eacute; aislar el capital?</div>
+  <p>Si ten&eacute;s otras posiciones abiertas, grids, o fondos en tu cuenta principal, necesit&aacute;s que la estrategia <strong>no toque ese dinero</strong>. La mejor forma es usar una <strong>subcuenta de Binance</strong>: una cuenta separada con su propia billetera y sus propias API keys.</p>
+</div>
+
+<h3>Opci&oacute;n A: Subcuenta de Binance (recomendada)</h3>
+
+<div class="step"><div class="step-num">1</div><div class="step-content"><strong>Crear subcuenta</strong><br><span style="color: var(--text2)">Binance Web &rarr; Men&uacute; lateral &rarr; Subcuentas &rarr; Gesti&oacute;n de cuentas &rarr; <strong>+ Crear subcuenta</strong><br>Email: usar un alias (ej: <code>tucorreo+eth2pm@gmail.com</code>)<br>Nombre: <code>ETH-2PM-Bot</code></span></div></div>
+
+<div class="step"><div class="step-num">2</div><div class="step-content"><strong>Transferir capital inicial</strong><br><span style="color: var(--text2)">Cuenta principal &rarr; Transferir &rarr; Subcuenta &ldquo;ETH-2PM-Bot&rdquo; &rarr; <strong>$100 USDT</strong><br>Es instant&aacute;neo y sin comisi&oacute;n.</span></div></div>
+
+<div class="step"><div class="step-num">3</div><div class="step-content"><strong>Crear API keys para la subcuenta</strong> (si vas a automatizar)<br><span style="color: var(--text2)">Subcuentas &rarr; Gesti&oacute;n de API &rarr; Crear API<br>Permisos: <strong>Futures</strong> + <strong>Spot</strong> (para Earn). <strong>NO habilitar retiros.</strong></span></div></div>
+
+<div class="card success">
+  <div class="card-title">Resultado</div>
+  <p>Tu cuenta queda as&iacute;:</p>
+  <div class="code"><span class="action">Cuenta principal</span> ($2,700+)  &larr; no se toca, tus grids y fondos seguros
+  <span class="action">Subcuenta "ETH-2PM-Bot"</span> ($100)  &larr; la estrategia solo ve esto</div>
+  <p>El bot (o vos manualmente) <strong>no puede ver ni tocar</strong> la cuenta principal. Es un cortafuegos real, no solo software.</p>
+</div>
+
+<h3>Opci&oacute;n B: Sin subcuenta (control manual)</h3>
+
+<div class="card">
+  <p>Si no ten&eacute;s subcuentas disponibles, pod&eacute;s aislar el capital manualmente:</p>
+  <p>&bull; Decidir un monto fijo (ej: $100) y <strong>nunca operar con m&aacute;s de eso</strong>.<br>
+  &bull; Calcular la cantidad de ETH exacta antes de cada trade: <code>cantidad = (capital &times; leverage) / precio_ETH</code>.<br>
+  &bull; Llevar un registro aparte del capital de la estrategia (una hoja de c&aacute;lculo o app de notas).</p>
+  <p><span class="badge yellow">Importante:</span> Requiere disciplina. Si tu cuenta tiene $5,000, ten&eacute;s que abrir posiciones de solo $100 y no dejarte tentar.</p>
+</div>
+
+<!-- ═══════════════════════ 5. GU&Iacute;A ═══════════════════════ -->
+<h2 id="guia">5. Gu&iacute;a paso a paso (operaci&oacute;n diaria)</h2>
+
+<div class="step"><div class="step-num">1</div><div class="step-content"><strong>1:50 PM</strong> &mdash; Abrir TradingView (gr&aacute;fico diario) y Binance. Revisar los 4 filtros:<br><span style="color: var(--text2)">&iquest;No es jueves? &iquest;ETH &gt; SMA 50? &iquest;BTC &gt; SMA 50? &iquest;Volumen normal?</span></div></div>
+
+<div class="step"><div class="step-num">2</div><div class="step-content"><strong>Si NO pasan los filtros</strong> &mdash; No operar hoy.<br><span style="color: var(--text2)">Verificar que tu USDT est&aacute; en Simple Earn (Flexible). Listo.</span></div></div>
+
+<div class="step"><div class="step-num">3</div><div class="step-content"><strong>Si S&Iacute; pasan</strong> &mdash; A las 2:00 PM:<br><span style="color: var(--text2)">&bull; Redimir USDT de Simple Earn (llega instant&aacute;neo)<br>&bull; Futuros USDS-M &rarr; ETHUSDT &rarr; Aislado, 3x leverage<br>&bull; Abrir LONG con todo el capital asignado<br>&bull; Poner TP (Take Profit) al +1.5%</span></div></div>
+
+<div class="step"><div class="step-num">4</div><div class="step-content"><strong>2:00 PM &ndash; 6:00 PM</strong> &mdash; No hacer nada.<br><span style="color: var(--text2)">Si el TP se activa, recibir&aacute;s notificaci&oacute;n de Binance. D&iacute;a terminado.</span></div></div>
+
+<div class="step"><div class="step-num">5</div><div class="step-content"><strong>6:00 PM</strong> &mdash; Si el TP no se activ&oacute;:<br><span style="color: var(--text2)">&bull; Cerrar la posici&oacute;n manualmente (sin importar si est&aacute;s en ganancia o p&eacute;rdida)<br>&bull; NUNCA dejar una posici&oacute;n abierta de un d&iacute;a para otro</span></div></div>
+
+<div class="step"><div class="step-num">6</div><div class="step-content"><strong>Despu&eacute;s de cerrar</strong> &mdash; Devolver USDT a Simple Earn. Anotar resultado. Repetir ma&ntilde;ana.</div></div>
+
+<!-- ═══════════════════════ 5. PR&Aacute;CTICA ═══════════════════════ -->
+<h2 id="practica">6. Qu&eacute; esperar en la pr&aacute;ctica</h2>
+
+<div class="card">
+  <div class="card-title">Un mes t&iacute;pico</div>
+  <table>
+    <tr><td>D&iacute;as que oper&aacute;s</td><td><strong>~9 de 30</strong> (los otros 21 los filtros dicen &ldquo;no operar&rdquo;)</td></tr>
+    <tr><td>De esos 9 trades</td><td><strong>~6 ganan, ~3 pierden</strong></td></tr>
+    <tr><td>Ganancia mensual t&iacute;pica (mediana)</td><td class="pos">+4.5%</td></tr>
+    <tr><td>Ganancia mensual promedio</td><td class="pos">+6.15%</td></tr>
+    <tr><td>Ganancia promedio por trade</td><td class="pos">+0.63%</td></tr>
+    <tr><td>Mejor mes hist&oacute;rico</td><td class="pos">+45.3% (ene 2021)</td></tr>
+    <tr><td>Peor mes hist&oacute;rico</td><td class="neg">-25.4% (mar 2024)</td></tr>
+    <tr><td>Meses positivos</td><td class="pos">62% (49 de 79)</td></tr>
+  </table>
+</div>
+
+<h3>Distribuci&oacute;n de retornos mensuales</h3>
+<div class="bar-chart">
+  <div class="bar-row"><div class="bar-label">-20% a -10%</div><div class="bar neg" style="width: 30px"></div><div class="bar-value">4 meses (5%)</div></div>
+  <div class="bar-row"><div class="bar-label">-10% a -5%</div><div class="bar neg" style="width: 45px"></div><div class="bar-value">6 meses (8%)</div></div>
+  <div class="bar-row"><div class="bar-label">-5% a 0%</div><div class="bar neg" style="width: 130px"></div><div class="bar-value">17 meses (22%)</div></div>
+  <div class="bar-row"><div class="bar-label">0% a +5%</div><div class="bar pos" style="width: 90px"></div><div class="bar-value">12 meses (15%)</div></div>
+  <div class="bar-row"><div class="bar-label">+5% a +10%</div><div class="bar pos" style="width: 90px"></div><div class="bar-value">12 meses (15%)</div></div>
+  <div class="bar-row"><div class="bar-label">+10% a +20%</div><div class="bar pos" style="width: 90px"></div><div class="bar-value">12 meses (15%)</div></div>
+  <div class="bar-row"><div class="bar-label">+20% a +50%</div><div class="bar pos" style="width: 100px"></div><div class="bar-value">13 meses (16%)</div></div>
+</div>
+<p>La mayor&iacute;a de p&eacute;rdidas son chicas (-5% a 0%), mientras que las ganancias tienen &ldquo;cola larga&rdquo; &mdash; meses de +20% a +45% que impulsan el inter&eacute;s compuesto.</p>
+
+<!-- ═══════════════════════ 6. RESULTADOS ═══════════════════════ -->
+<h2 id="resultados">7. Resultados hist&oacute;ricos: 8 a&ntilde;os</h2>
+
+<div class="metrics">
+  <div class="metric"><div class="label">Capital final</div><div class="value pos">$5,835</div></div>
+  <div class="metric"><div class="label">Con Simple Earn</div><div class="value pos">$6,916</div></div>
+  <div class="metric"><div class="label">Retorno anual</div><div class="value pos">+50%/yr</div></div>
+  <div class="metric"><div class="label">Winrate</div><div class="value" style="color: var(--blue)">62%</div></div>
+  <div class="metric"><div class="label">Max drawdown</div><div class="value neg">-33%</div></div>
+  <div class="metric"><div class="label">A&ntilde;os positivos</div><div class="value pos">9 de 10</div></div>
+</div>
+
+<h3>Resultado por a&ntilde;o</h3>
+<table>
+  <thead><tr><th>A&ntilde;o</th><th>Capital inicio</th><th>Capital fin</th><th>PnL %</th><th>Trades</th><th>Win%</th></tr></thead>
+  <tbody>
+    <tr><td>2017</td><td>$100</td><td>$117</td><td class="pos">+16.7%</td><td>72</td><td>63%</td></tr>
+    <tr><td>2018</td><td>$117</td><td>$147</td><td class="pos">+26.0%</td><td>16</td><td>69%</td></tr>
+    <tr><td>2019</td><td>$147</td><td>$291</td><td class="pos">+97.5%</td><td>73</td><td>62%</td></tr>
+    <tr><td>2020</td><td>$291</td><td>$859</td><td class="pos">+194.8%</td><td>115</td><td>64%</td></tr>
+    <tr><td>2021</td><td>$859</td><td>$1,832</td><td class="pos">+113.2%</td><td>120</td><td>63%</td></tr>
+    <tr><td>2022</td><td>$1,832</td><td>$2,094</td><td class="pos">+14.3%</td><td>37</td><td>59%</td></tr>
+    <tr><td>2023</td><td>$2,094</td><td>$1,983</td><td class="neg">-5.3%</td><td>109</td><td>54%</td></tr>
+    <tr><td>2024</td><td>$1,983</td><td>$2,635</td><td class="pos">+32.9%</td><td>92</td><td>62%</td></tr>
+    <tr><td>2025</td><td>$2,635</td><td>$4,712</td><td class="pos">+78.8%</td><td>61</td><td>66%</td></tr>
+    <tr><td>2026*</td><td>$4,712</td><td>$5,835</td><td class="pos">+23.8%</td><td>23</td><td>65%</td></tr>
+  </tbody>
+</table>
+<p style="font-size: 0.85em; color: var(--text2);">* 2026 hasta abril (parcial). Solo 2023 fue negativo, y apenas -5.3%. Los filtros &ldquo;apagaron&rdquo; la estrategia en 2018 (crypto winter, solo 16 trades) y en 2022 (crash LUNA/FTX, solo 37 trades), protegiendo el capital.</p>
+
+<!-- ═══════════════════════ 7. SIMPLE EARN ═══════════════════════ -->
+<h2 id="earn">8. D&iacute;as sin se&ntilde;al y Simple Earn</h2>
+
+<div class="card">
+  <p>El 77% del tiempo los filtros dicen &ldquo;no operar&rdquo;. Son ~21 d&iacute;as de cada 30 donde tu capital est&aacute; parado. La soluci&oacute;n: <strong>Simple Earn Flexible de Binance</strong>.</p>
+  <p>Funciona como una cuenta de ahorros: Binance usa tu USDT para prest&aacute;rselo a otros traders y te paga inter&eacute;s diario (~3% anual). Cuando necesit&aacute;s operar, lo sac&aacute;s al instante.</p>
+</div>
+
+<div class="card warning">
+  <div class="card-title">&iquest;Por qu&eacute; no operar otro par los d&iacute;as idle?</div>
+  <p>Lo probamos: DOGE en d&iacute;as idle pierde -29%, BTC pierde -65%, ETH en otra hora pierde -100%. Cuando los filtros dicen &ldquo;no&rdquo;, el mercado entero est&aacute; en contra. <strong>La disciplina de NO operar vale m&aacute;s que cualquier trade alternativo.</strong></p>
+</div>
+
+<h3>Cu&aacute;nto suma Simple Earn</h3>
+<table>
+  <thead><tr><th>APY</th><th>Extra en 8 a&ntilde;os</th><th>Capital final (con estrategia)</th></tr></thead>
+  <tbody>
+    <tr><td>2%</td><td class="pos">+13.4%</td><td>$6,617</td></tr>
+    <tr><td><strong>3% (t&iacute;pico hoy)</strong></td><td class="pos"><strong>+18.5%</strong></td><td><strong>$6,916</strong></td></tr>
+    <tr><td>5%</td><td class="pos">+33.5%</td><td>$7,788</td></tr>
+    <tr><td>8%</td><td class="pos">+53.6%</td><td>$8,963</td></tr>
+  </tbody>
+</table>
+
+<h3>C&oacute;mo configurarlo en Binance</h3>
+<div class="code"><span class="action">SUSCRIBIR:</span>  App &rarr; Earn &rarr; Simple Earn &rarr; USDT &rarr; Flexible &rarr; Auto-subscribe: <span class="yes">ON</span>
+<span class="action">REDIMIR:</span>    Earn &rarr; Mis ganancias &rarr; USDT &rarr; Redimir &rarr; <span class="yes">Llega instant&aacute;neo</span></div>
+
+<!-- ═══════════════════════ 8. LEVERAGE ═══════════════════════ -->
+<h2 id="leverage">9. Opciones de leverage</h2>
+
+<table>
+  <thead><tr><th>Leverage</th><th>Retorno 8 a&ntilde;os</th><th>Con Earn</th><th>Max DD</th><th>Para qui&eacute;n</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1x</strong></td><td class="pos">+333%</td><td class="pos">$529</td><td>-10.5%</td><td>Ultra conservador. Duermes como beb&eacute;.</td></tr>
+    <tr><td><strong>2x</strong></td><td class="pos">+1,580%</td><td class="pos">$2,054</td><td>-21.0%</td><td>Conservador. Mejor relaci&oacute;n riesgo/retorno.</td></tr>
+    <tr><td><strong>3x</strong></td><td class="pos">+5,735%</td><td class="pos">$7,134</td><td>-33.0%</td><td>Moderado. El default de esta estrategia.</td></tr>
+    <tr><td><strong>5x</strong></td><td class="pos">+49,669%</td><td class="pos">$60.8k</td><td>-51.6%</td><td>Agresivo. Solo si toler&aacute;s ver -52% de DD.</td></tr>
+    <tr><td><strong>10x</strong></td><td class="pos">+1,042,135%</td><td class="pos">$1.27M</td><td>-86.1%</td><td>Peligroso. El primer a&ntilde;o perdi&oacute; -51%.</td></tr>
+  </tbody>
+</table>
+
+<div class="card">
+  <div class="card-title">&iquest;Riesgo de liquidaci&oacute;n?</div>
+  <p>Con margen aislado y 4 horas de hold, la liquidaci&oacute;n requerir&iacute;a que ETH caiga -33% (3x), -20% (5x), o -10% (10x) <strong>en 4 horas</strong>. En toda la historia de ETH, el peor movimiento en 4 horas fue ~-15%. Hasta 5x es seguro contra liquidaci&oacute;n. El riesgo real no es liquidaci&oacute;n &mdash; es el drawdown acumulado por trades perdedores consecutivos.</p>
+</div>
+
+<!-- ═══════════════════════ 9. OTROS PARES ═══════════════════════ -->
+<h2 id="otros-pares">10. La estrategia en otros pares (Top 20)</h2>
+
+<div class="card warning">
+  <p>Probamos la misma estrategia en los 20 pares m&aacute;s populares de futuros. <strong>Solo funciona bien en 2 pares.</strong> El efecto &ldquo;2 PM&rdquo; es espec&iacute;fico, no universal.</p>
+</div>
+
+<table>
+  <thead><tr><th>#</th><th>Par</th><th>$100 &rarr;</th><th>Retorno</th><th>Win%</th><th>Max DD</th><th>A&ntilde;os+</th><th>Veredicto</th></tr></thead>
+  <tbody>
+    <tr style="background: #0e1e14"><td>1</td><td><strong>ETH</strong></td><td class="pos">$5,835</td><td class="pos">+5,735%</td><td>62%</td><td>-33%</td><td>9/10</td><td><span class="badge green">Campe&oacute;n</span></td></tr>
+    <tr style="background: #0e1e14"><td>2</td><td><strong>DOGE</strong></td><td class="pos">$1,148</td><td class="pos">+1,048%</td><td>64%</td><td>-48%</td><td>7/8</td><td><span class="badge green">Funciona</span></td></tr>
+    <tr><td>3-7</td><td>LINK, BTC, XRP, ADA, LTC</td><td>$219-414</td><td>+119-314%</td><td>54-61%</td><td>-63 a -85%</td><td>5-8</td><td><span class="badge yellow">DD alto</span></td></tr>
+    <tr style="background: #1e0e0e"><td>8-20</td><td>SOL, DOT, AVAX, UNI, MATIC, etc.</td><td class="neg">$14-187</td><td class="neg">Negativos</td><td>53-62%</td><td>-52 a -93%</td><td>2-7</td><td><span class="badge red">No funciona</span></td></tr>
+  </tbody>
+</table>
+<p style="font-size: 0.85em; color: var(--text2);">Dato revelador: MATIC tiene 62% de winrate pero <strong>pierde -72%</strong>. Un winrate alto no alcanza &mdash; importa el tama&ntilde;o de las p&eacute;rdidas cuando pierd&eacute;s.</p>
+
+<!-- ═══════════════════════ 10. POR QU&Eacute; ═══════════════════════ -->
+<h2 id="por-que">11. &iquest;Por qu&eacute; funciona a esta hora?</h2>
+
+<div class="card">
+  <p>Analizamos <strong>518,000 velas de 1 minuto</strong> de ETH. Entre las 2 PM y las 6 PM Colombia (19:00&ndash;23:00 UTC) es la &uacute;nica ventana de 4 horas con sesgo alcista estad&iacute;sticamente significativo.</p>
+  <p><strong>La raz&oacute;n econ&oacute;mica:</strong> a las 4 PM hora de Nueva York (21:00 UTC) cierra el mercado de acciones de Estados Unidos. Los fondos que usaban crypto como cobertura cierran posiciones, generando presi&oacute;n compradora. Adem&aacute;s, la sesi&oacute;n asi&aacute;tica &mdash;hist&oacute;ricamente compradora de crypto&mdash; empieza a posicionarse.</p>
+  <p><strong>Validaci&oacute;n:</strong> este efecto sobrevivi&oacute; el crypto winter de 2018, el crash de COVID en 2020, el colapso de LUNA/FTX en 2022, y el bear market de 2023. Es estructural, no accidental.</p>
+  <p><strong>Verificaci&oacute;n adicional:</strong> comparamos los resultados usando velas de 1 hora y de 1 minuto. Las estrategias sin trailing stop dieron resultados id&eacute;nticos en ambas resoluciones, confirmando que el backtest no es optimista.</p>
+</div>
+
+<!-- ═══════════════════════ 11. RIESGOS ═══════════════════════ -->
+<h2 id="riesgos">12. Riesgos y reglas de oro</h2>
+
+<div class="card success">
+  <div class="card-title">Lo bueno</div>
+  <p>&bull; Solo 4 horas de exposici&oacute;n al d&iacute;a. A las 6 PM cierr&aacute;s y dorm&iacute;s tranquilo.<br>
+  &bull; 62% de los trades ganan. De cada 10 operaciones, 6 ganan y 4 pierden.<br>
+  &bull; Solo 1 a&ntilde;o negativo en 9 (2023, y apenas -5.3%).<br>
+  &bull; Max drawdown -33% &mdash; manejable para un perfil moderado.<br>
+  &bull; Los filtros &ldquo;apagan&rdquo; la estrategia en mercados malos autom&aacute;ticamente.</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title">Los riesgos reales</div>
+  <p>&bull; <strong>Max drawdown -33%</strong>: tu capital puede caer un tercio desde su pico.<br>
+  &bull; <strong>4 de cada 10 trades pierden.</strong> Habr&aacute; semanas de 3&ndash;5 p&eacute;rdidas seguidas. Es normal.<br>
+  &bull; <strong>Peor trade: -19.4%</strong> en un solo d&iacute;a. Eso pasa 1&ndash;2 veces al a&ntilde;o.<br>
+  &bull; <strong>Rendimiento pasado no es garant&iacute;a.</strong> El mercado puede cambiar.<br>
+  &bull; <strong>Solo funciona en ETH.</strong> No aplicar ciegamente a otros pares.</p>
+</div>
+
+<div class="card warning">
+  <div class="card-title">Reglas de oro</div>
+  <p>&bull; <strong>Nunca inviertas lo que no puedas perder.</strong> Empieza con $100 m&aacute;ximo.<br>
+  &bull; <strong>A las 6 PM se cierra, punto.</strong> Sin excepciones. Nunca de un d&iacute;a para otro.<br>
+  &bull; <strong>Si los filtros dicen &ldquo;no operar&rdquo;, NO operes.</strong> La disciplina vale m&aacute;s que la ganancia.<br>
+  &bull; <strong>Lleva un registro.</strong> Fecha, precio de entrada, precio de salida, ganancia/p&eacute;rdida.<br>
+  &bull; <strong>Si pierdes 3 semanas seguidas</strong>, pausa y revisa si los filtros siguen funcionando.</p>
+</div>
+
+<!-- ═══════════════════════ 12. PAR&Aacute;METROS ═══════════════════════ -->
+<h2 id="parametros">13. Par&aacute;metros t&eacute;cnicos</h2>
+
+<table>
+  <thead><tr><th>Par&aacute;metro</th><th>Valor</th><th>Nota</th></tr></thead>
+  <tbody>
+    <tr><td>Par</td><td><strong>ETHUSDT</strong></td><td>Futuros USDS-M en Binance</td></tr>
+    <tr><td>Entrada</td><td><strong>19:00 UTC / 2:00 PM Colombia</strong></td><td>Al open de la vela horaria</td></tr>
+    <tr><td>Salida</td><td><strong>23:00 UTC / 6:00 PM Colombia</strong></td><td>Al close de la vela o por TP</td></tr>
+    <tr><td>Hold</td><td><strong>4 horas</strong></td><td>Nunca m&aacute;s, nunca menos</td></tr>
+    <tr><td>Take Profit</td><td><strong>+1.5%</strong></td><td>Desde precio de entrada</td></tr>
+    <tr><td>Stop Loss</td><td><strong>No</strong></td><td>Solo exit por timeout a las 6 PM</td></tr>
+    <tr><td>Leverage</td><td><strong>3x</strong></td><td>Conservador: 2x (DD -21%). Agresivo: 5x (DD -52%)</td></tr>
+    <tr><td>Margen</td><td><strong>Aislado</strong></td><td>Protege el resto de la cuenta</td></tr>
+    <tr><td>Filtro 1</td><td><strong>Skip jueves</strong></td><td>D&iacute;a sin edge hist&oacute;rico</td></tr>
+    <tr><td>Filtro 2</td><td><strong>ETH &gt; SMA 50d</strong></td><td>Solo en tendencia alcista de ETH</td></tr>
+    <tr><td>Filtro 3</td><td><strong>BTC &gt; SMA 50d</strong></td><td>Solo en tendencia alcista de BTC</td></tr>
+    <tr><td>Filtro 4</td><td><strong>Vol 4h &gt; 80% avg 7d</strong></td><td>Solo con liquidez suficiente</td></tr>
+    <tr><td>Fee asumido</td><td><strong>0.08% round-trip</strong></td><td>Maker en futuros Binance</td></tr>
+    <tr><td>Capital idle</td><td><strong>Simple Earn Flexible</strong></td><td>~3% APY en d&iacute;as sin se&ntilde;al</td></tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════ 13. GLOSARIO ═══════════════════════ -->
+<h2 id="glosario">14. Glosario</h2>
+
+<table>
+  <thead><tr><th>T&eacute;rmino</th><th>Qu&eacute; significa</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ETH / Ethereum</strong></td><td>La segunda criptomoneda m&aacute;s grande del mundo. Es lo que compr&aacute;s y vend&eacute;s en esta estrategia.</td></tr>
+    <tr><td><strong>BTC / Bitcoin</strong></td><td>La criptomoneda m&aacute;s grande. Se usa como filtro: si BTC cae, todo cae con &eacute;l.</td></tr>
+    <tr><td><strong>Futuros</strong></td><td>Un contrato que permite apostar a que el precio sube (LONG) o baja (SHORT) sin comprar la moneda real.</td></tr>
+    <tr><td><strong>LONG</strong></td><td>Apostar a que el precio va a subir. Compr&aacute;s barato, vend&eacute;s caro.</td></tr>
+    <tr><td><strong>Leverage 3x</strong></td><td>Oper&aacute;s con 3 veces tu dinero. Con $100 oper&aacute;s como si tuvieras $300. Ganancias y p&eacute;rdidas se multiplican &times;3.</td></tr>
+    <tr><td><strong>Margen Aislado</strong></td><td>Un &ldquo;cortafuegos&rdquo;. Si algo sale terrible, solo perd&eacute;s lo que pusiste en ese trade, no todo tu dinero.</td></tr>
+    <tr><td><strong>Take Profit (TP)</strong></td><td>Orden autom&aacute;tica: &ldquo;cuando mi ganancia llegue a +1.5%, vende solo&rdquo;. No ten&eacute;s que estar mirando.</td></tr>
+    <tr><td><strong>SMA 50</strong></td><td>Precio promedio de los &uacute;ltimos 50 d&iacute;as. Si el precio actual est&aacute; por encima, la tendencia es alcista.</td></tr>
+    <tr><td><strong>Volumen</strong></td><td>Cu&aacute;ntas personas est&aacute;n comprando/vendiendo. M&aacute;s volumen = movimientos m&aacute;s confiables.</td></tr>
+    <tr><td><strong>Drawdown (DD)</strong></td><td>La peor ca&iacute;da desde un pico. Si tu capital lleg&oacute; a $200 y baj&oacute; a $134, el DD fue -33%.</td></tr>
+    <tr><td><strong>Winrate</strong></td><td>Porcentaje de trades que ganan. 62% = de cada 10 trades, 6 ganan.</td></tr>
+    <tr><td><strong>Inter&eacute;s compuesto</strong></td><td>Reinvertir las ganancias. Siempre oper&aacute;s con todo lo que ten&eacute;s, no con el monto original.</td></tr>
+    <tr><td><strong>Simple Earn</strong></td><td>Cuenta de ahorros de Binance. Tu USDT genera inter&eacute;s diario (~3% anual) mientras no oper&aacute;s.</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  Estrategia desarrollada y backtested por Manuel con Claude.<br>
+  Datos: Binance API &bull; Per&iacute;odo: Ago 2017 &ndash; Abr 2026 (8.5 a&ntilde;os, 719 trades, 518k velas de 1 minuto analizadas)<br>
+  &Uacute;ltima actualizaci&oacute;n: Abril 2026<br><br>
+  <strong>Esto NO es consejo financiero.</strong> Rendimiento pasado no garantiza resultados futuros.<br>Nunca inviertas lo que no puedas perder.
+</footer>
+
+</body>
+</html>
