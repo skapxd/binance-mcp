@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "./env.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerBinanceSpotTools } from "./tools/binance-spot/index.js";
@@ -20,8 +20,6 @@ import { registerBinanceDiagnosticTools } from "./tools/diagnostics/index.js";
 import { registerBinanceCustomTools } from "./tools/custom/index.js";
 import { registerBinanceOrderBook } from "./tools/binanceOrderBook.js";
 
-// Load environment variables
-dotenv.config();
 
 export function createServer() {
     const server = new McpServer({
@@ -71,7 +69,8 @@ export async function main() {
 }
 
 // Only execute main if this file is the entry point
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("binance-mcp/src/index.ts") || process.argv[1]?.endsWith("binance-mcp/build/index.js")) {
+const argv1Normalized = process.argv[1]?.replace(/\\/g, "/");
+if (import.meta.url === `file://${process.argv[1]}` || argv1Normalized?.endsWith("binance-mcp/src/index.ts") || argv1Normalized?.endsWith("binance-mcp/build/index.js")) {
     main().catch(error => {
         console.error("Server failed:", error);
         process.exit(1);

@@ -167,12 +167,16 @@ Grid bots        → Futures → Bot Trading → Grid
 
 | Aspecto | Testnet | Producción |
 |---|---|---|
-| URL | `testnet.binancefuture.com` | `fapi.binance.com` (default del SDK) |
+| URL | `testnet.binancefuture.com` | `fapi.binance.com` |
 | Hedge Mode | ❌ One-way (`dualSidePosition: false`) | ✅ Activo (`positionSide` requerido) |
 | `positionSide` en órdenes | No enviar (error si se envía) | Obligatorio: `LONG` o `SHORT` |
 | `reduceOnly` | Puede usarse | No usar junto con `positionSide` |
 | Keys | `build/.env.testnet` | `build/.env` |
-| Saldo USDT | ~$4,932 (ficticio) | Real |
+| Saldo USDT | ~$5,000 (ficticio) | Real |
+| Activar | `BINANCE_ENV=testnet` en `.mcp.json` | `BINANCE_ENV=production` (o eliminar la variable) |
+
+**Cómo cambiar de entorno:** editar `.mcp.json` → modificar `BINANCE_ENV` → recargar Claude Code.
+**Cómo detectar el entorno activo:** llamar `BinanceCustomFuturesAccount`. Balance ~$5,000 = testnet. Balance real = producción.
 
 **Regla de trabajo:** siempre probar en testnet primero cuando se cambia la estructura de una estrategia.
 Para tipos de orden ya validados (LIMIT/MARKET), no hace falta re-validar en cada operación.

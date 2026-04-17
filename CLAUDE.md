@@ -6,6 +6,30 @@ Contiene el contexto esencial y los punteros a la documentación detallada.
 
 ---
 
+## ⚡ INICIO DE SESIÓN — validación automática al arrancar
+
+Al comenzar cada sesión Claude ejecuta en background `BinanceCustomFuturesAccount` y reporta el estado junto con su primera respuesta. No bloquea ni demora la respuesta — informa en paralelo.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ESTADO DE SESIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔵 ENTORNO: TESTNET — testnet.binancefuture.com
+   (o 🔴 PRODUCCIÓN — fapi.binance.com)
+
+💰 Balance: $XXX.XX disponible
+
+🤖 Bots activos (Pilar 1):
+   SOLUSDT  ✅ | XRPUSDT  ✅ | ADAUSDT  ✅
+
+⚠️  Alertas: [ninguna / lista de alertas si las hay]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Si hay alertas activas (bot cerca de límite, funding negativo, posición abierta no esperada) → mencionarlas explícitamente aunque el usuario haya preguntado otra cosa.
+
+---
+
 ## Quién es el usuario
 
 Trader conservador con experiencia en grid bots de futuros en Binance.
@@ -114,13 +138,26 @@ Antes de cualquier ejecución con capital real, seguir el flujo de 5 pasos en `d
 
 ## Ejecución de órdenes
 
-### Entorno — declarar SIEMPRE antes de ejecutar
+### Entorno — cómo funciona y cómo detectarlo
+
+El entorno activo se controla desde `.mcp.json` con la variable `BINANCE_ENV`:
+
+| `BINANCE_ENV` | Keys usadas | Endpoint futuros |
+|---|---|---|
+| `testnet` | `build/.env.testnet` | `testnet.binancefuture.com` |
+| `production` (o ausente) | `build/.env` | `fapi.binance.com` |
+
+**Para cambiar de entorno:** editar `.mcp.json` → cambiar el valor de `BINANCE_ENV` → recargar Claude Code.
+
+**Para detectar el entorno activo en sesión:** llamar `BinanceCustomFuturesAccount`. Si el balance es ~$5,000 ficticio → testnet. Si es el balance real → producción.
+
+### Declarar entorno SIEMPRE antes de ejecutar órdenes
 
 ```
-🔵 ENTORNO: TESTNET — build/.env.testnet
+🔵 ENTORNO: TESTNET — testnet.binancefuture.com
 ```
 ```
-🔴 ENTORNO: PRODUCCIÓN — build/.env
+🔴 ENTORNO: PRODUCCIÓN — fapi.binance.com
 ⚠️  ALERTA: estamos por ejecutar una orden con dinero real.
     Par: XXXUSDT | Tipo: SELL SHORT LIMIT | Precio: $X.XX | Qty: XX
     Confirmás? (sí / no)

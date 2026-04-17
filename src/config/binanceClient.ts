@@ -55,7 +55,9 @@ export const miningClient = createProtectedClient(new Mining({ configurationRest
 export const vipLoanClient = createProtectedClient(new VipLoan({ configurationRestAPI }));
 export const stakingClient = createProtectedClient(new Staking({ configurationRestAPI }));
 
-// Futures uses a different base URL (fapi.binance.com). Let the SDK default it by
-// not passing basePath.
-const futuresRestAPI = { apiKey: API_KEY ?? "", apiSecret: API_SECRET ?? "" };
+// Futures: testnet uses a different base URL
+const futuresBasePath = process.env.BINANCE_ENV === "testnet"
+    ? "https://testnet.binancefuture.com"
+    : "https://fapi.binance.com";
+const futuresRestAPI = { apiKey: API_KEY ?? "", apiSecret: API_SECRET ?? "", basePath: futuresBasePath };
 export const usdsFuturesClient = createProtectedClient(new DerivativesTradingUsdsFutures({ configurationRestAPI: futuresRestAPI }));
