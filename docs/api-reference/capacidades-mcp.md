@@ -34,12 +34,13 @@ La herramienta principal de ejecución. Reemplaza los scripts Bash manuales.
 |---|---|---|
 | `LIMIT` | ✅ Funciona | Entradas escalonadas, Take Profit. Precio debe estar sobre el mercado para SELL SHORT que espera spike. |
 | `MARKET` | ✅ Funciona | Cierre de emergencia, entrada inmediata |
-| `STOP_MARKET` | ❌ Bloqueado | "Order type not supported — use Algo Order API" — colocar desde UI de Binance |
-| `TAKE_PROFIT_MARKET` | ❌ Bloqueado | Ídem — UI de Binance |
-| `TRAILING_STOP_MARKET` | ❌ Bloqueado | Ídem — UI de Binance |
+| `STOP_MARKET` | ⚠️ Migrado | Usar `BinanceCustomFuturesAlgoOrder` (ver abajo) |
+| `TAKE_PROFIT_MARKET` | ⚠️ Migrado | Usar `BinanceCustomFuturesAlgoOrder` |
+| `TRAILING_STOP_MARKET` | ⚠️ Migrado | Usar `BinanceCustomFuturesAlgoOrder` |
 
-> **Workaround para Stop Loss:** colocar desde UI de Binance → Futures → posición → Add SL/TP.
-> Claude monitorea el precio y avisa cuando acercarse al stop → el usuario cierra con MARKET si es necesario.
+> **Desde dic 2025**, Binance migró las órdenes condicionales al Algo Order API (`/fapi/v1/algoOrder`).
+> El endpoint clásico `/fapi/v1/order` devuelve error -4120 para estos tipos.
+> Ver sección **Algo Orders** más abajo para las 3 nuevas herramientas.
 
 **Capacidades adicionales que hace antes de la orden (en el mismo llamado):**
 - Setea leverage: `leverage: 3`
@@ -134,9 +135,11 @@ Las marcadas ✅ pueden agregarse como nuevas tools si se necesitan.
 | Setear leverage | `changeInitialLeverage` | ✅ | Dentro de BinanceCustomFuturesNewOrder |
 | Setear margen | `changeMarginType` | ✅ | Dentro de BinanceCustomFuturesNewOrder |
 | Ver modo posición | `getCurrentPositionMode` | ✅ | Se hace via script |
-| STOP_MARKET | `newOrder` | ❌ | Bloqueado por Binance (API pública) |
-| TAKE_PROFIT_MARKET | `newOrder` | ❌ | Bloqueado por Binance |
-| TRAILING_STOP_MARKET | `newOrder` | ❌ | Bloqueado por Binance |
+| STOP_MARKET | Algo Order API | ✅ | `BinanceCustomFuturesAlgoOrder` |
+| TAKE_PROFIT_MARKET | Algo Order API | ✅ | `BinanceCustomFuturesAlgoOrder` |
+| TRAILING_STOP_MARKET | Algo Order API | ✅ | `BinanceCustomFuturesAlgoOrder` |
+| Consultar TP/SL abiertos | Algo Order API | ✅ | `BinanceCustomFuturesAlgoOpenOrders` |
+| Cancelar TP/SL | Algo Order API | ✅ | `BinanceCustomFuturesCancelAlgoOrder` |
 | Grid bots | — | ❌ | Solo desde UI de Binance |
 
 ---
@@ -146,18 +149,17 @@ Las marcadas ✅ pueden agregarse como nuevas tools si se necesitan.
 ### Qué hace Claude via MCP/SDK
 
 ```
-BinanceCustomFuturesNewOrder → entradas LIMIT escalonadas
-BinanceCustomFuturesNewOrder → Take Profit LIMIT
-BinanceCustomFuturesNewOrder → cierre MARKET de emergencia
-BinanceCustomGridCandidateAnalyzer → análisis de candidatos para grids
-scripts (Bash) → consulta de precios, RSI, funding, orderbook, balance
+BinanceCustomFuturesNewOrder         → entradas LIMIT/MARKET
+BinanceCustomFuturesAlgoOrder        → Take Profit, Stop Loss, Trailing Stop
+BinanceCustomFuturesAlgoOpenOrders   → consultar TP/SL activos
+BinanceCustomFuturesCancelAlgoOrder  → cancelar TP/SL
+BinanceCustomGridCandidateAnalyzer   → análisis de candidatos para grids
+scripts (Bash)                       → consulta de precios, RSI, funding, balance
 ```
 
 ### Qué hace el usuario manualmente desde UI de Binance
 
 ```
-Stop Loss        → Futures → posición → Add SL/TP
-Trailing Stop    → Futures → posición → Trailing Stop
 Grid bots        → Futures → Bot Trading → Grid
 ```
 
@@ -208,15 +210,47 @@ Para tipos de orden ya validados (LIMIT/MARKET), no hace falta re-validar en cad
 | `BinanceAllOrders` | Historial spot |
 | `BinanceOrderOco` | OCO spot (sí funciona en spot, no en futuros) |
 
-### Algo Orders (no públicos)
+### Algo Orders — Órdenes condicionales (TP/SL/Trailing)
 
-> Implementados en el MCP pero los endpoints de Binance no son públicos → no funcionan.
+> **Migración dic 2025:** Binance movió STOP_MARKET, TAKE_PROFIT_MARKET, STOP, TAKE_PROFIT
+> y TRAILING_STOP_MARKET del endpoint `/fapi/v1/order` al `/fapi/v1/algoOrder`.
+> El endpoint viejo devuelve error -4120.
+
+| Tool | Descripción | Endpoint |
+|---|---|---|
+| `BinanceCustomFuturesAlgoOrder` | Colocar TP, SL o Trailing Stop | POST `/fapi/v1/algoOrder` |
+| `BinanceCustomFuturesAlgoOpenOrders` | Ver TP/SL activos | GET `/fapi/v1/openAlgoOrders` |
+| `BinanceCustomFuturesCancelAlgoOrder` | Cancelar TP/SL por algoId | DELETE `/fapi/v1/algoOrder` |
+
+**Parámetros clave de `BinanceCustomFuturesAlgoOrder`:**
+
+| Parámetro | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `symbol` | string | ✅ | Par, ej. `ETHUSDT` |
+| `side` | BUY/SELL | ✅ | SELL para cerrar LONG, BUY para cerrar SHORT |
+| `type` | ENUM | ✅ | STOP_MARKET, TAKE_PROFIT_MARKET, STOP, TAKE_PROFIT, TRAILING_STOP_MARKET |
+| `triggerPrice` | number | ✅ | Precio que activa la orden (antes era `stopPrice`) |
+| `closePosition` | boolean | Opcional | `true` cierra toda la posición. No usar con `quantity`. |
+| `quantity` | number | Opcional | Cantidad específica. No usar con `closePosition`. |
+| `positionSide` | ENUM | Opcional | LONG/SHORT en Hedge Mode. Default BOTH. |
+| `workingType` | ENUM | Opcional | MARK_PRICE o CONTRACT_PRICE. Default CONTRACT_PRICE. |
+
+**Ejemplo — Take Profit:**
+```
+BinanceCustomFuturesAlgoOrder(symbol: ETHUSDT, side: SELL, type: TAKE_PROFIT_MARKET, triggerPrice: 2456.95, closePosition: true)
+```
+
+**Ejemplo — Stop Loss:**
+```
+BinanceCustomFuturesAlgoOrder(symbol: ETHUSDT, side: SELL, type: STOP_MARKET, triggerPrice: 2178.58, closePosition: true)
+```
+
+### Algo Orders legacy (no funcionan)
 
 | Tool | Estado |
 |---|---|
-| `BinanceTimeWeightedAveragePriceNewOrder` | ❌ 404 |
-| `BinanceCreateFutureGrid` | ❌ 404 |
-| `cancelAlgoOrder` | ❌ 404 |
+| `BinanceTimeWeightedAveragePriceNewOrder` | ❌ 404 — endpoint no público |
+| `BinanceCreateFutureGrid` | ❌ 404 — endpoint no público |
 
 ---
 

@@ -203,7 +203,9 @@ Después de confirmar entradas, Claude muestra siempre:
 | Chequeo diario bots Pilar 1 | `BinanceCustomFuturesBotStatus` | Precio, % en rango, distancia a stop/techo, funding, alertas automáticas. Pasar symbol + rangeMin + rangeMax + stopLoss. |
 | Colocar órdenes | `BinanceCustomFuturesNewOrder` | LIMIT/MARKET con leverage y margin. Siempre positionSide SHORT/LONG en producción. |
 | Analizar candidatos grid | `BinanceCustomGridCandidateAnalyzer` | ATR, Kaufman ER, backtest 1m. Complementar con funding manual. |
-| STOP_MARKET / TRAILING_STOP | — | ❌ Bloqueado por Binance → configurar desde UI |
+| TP, SL, Trailing Stop | `BinanceCustomFuturesAlgoOrder` | Órdenes condicionales via Algo Order API. Usa `triggerPrice` (no `stopPrice`). |
+| Consultar TP/SL activos | `BinanceCustomFuturesAlgoOpenOrders` | Ver todas las órdenes condicionales abiertas de un símbolo. |
+| Cancelar TP/SL | `BinanceCustomFuturesCancelAlgoOrder` | Cancelar por `algoId`. Obtener el ID con AlgoOpenOrders. |
 
 **Regla:** nunca usar scripts Bash node para consultas que ya tienen tool MCP. Los scripts solo como último recurso si una tool falla.
 
@@ -213,7 +215,7 @@ Después de confirmar entradas, Claude muestra siempre:
 
 ## Reglas del sistema
 
-0. **NO usar órdenes condicionales** — STOP_MARKET y TRAILING_STOP dan error -4120 via API. Solo LIMIT y MARKET.
+0. **Órdenes condicionales via Algo Order API** — STOP_MARKET, TAKE_PROFIT_MARKET, TRAILING_STOP van por `BinanceCustomFuturesAlgoOrder` (endpoint `/fapi/v1/algoOrder`). Usar `triggerPrice` en vez de `stopPrice`. El endpoint clásico `/fapi/v1/order` da error -4120 para estos tipos.
 1. **Nunca ejecutar sin confirmación explícita del usuario**
 2. **Análisis antes que ejecución** — siempre RSI, MACD, funding y ATR antes de proponer
 3. **Documentar todo** — cada estrategia, aprendizaje y cambio va a `docs/`
