@@ -125,8 +125,7 @@ Tools: `BinanceCustomFuturesBotStatus` por cada bot + `BinanceCustomFuturesAccou
 ```
 Siempre dar precio exacto de alarma, no rangos. El usuario la pone en la app y me avisa cuando suena.
 
-**Verificar mínimo UI antes de proponer:** `qty_min_UI = 1000 / precio_actual`
-Si el usuario no llega al mínimo notional de la UI de Binance (~$1,000 en coins de precio bajo) → no puede colocar el SL manual → trade inviable.
+**Verificar mínimo notional antes de proponer:** el mínimo de Binance Futures es ~$5 notional por orden. Con $100 a 3x no hay problema en condiciones normales.
 
 → **Detalle completo de análisis y checklists: `docs/protocolo-operativo.md` Paso 1**
 
@@ -176,18 +175,23 @@ La alerta de producción se muestra **siempre**, incluso si el usuario ya confir
 - Pasar `leverage` y `marginType: "ISOLATED"` en la primera orden de cada par
 - Colocar TPs **solo después que entre la primera orden** (error -2022 en Hedge Mode si no hay posición)
 
-### Post-ejecución — protecciones manuales (SHORT y LONG)
+### Post-ejecución — protecciones automáticas via Algo Order API
 
-Después de confirmar entradas, Claude muestra siempre:
+Después de confirmar entradas, Claude coloca SL, TP y Trailing Stop **automáticamente** via `BinanceCustomFuturesAlgoOrder`. No se necesita ir a la UI de Binance.
 
 ```
-📋 CONFIGURAR AHORA en Binance UI → Futures → Positions → [PAR] → Edit:
+✅ Claude ejecuta automáticamente (en orden):
+  ① Entradas LIMIT escalonadas  → BinanceCustomFuturesNewOrder
+  ② Stop Loss                   → BinanceCustomFuturesAlgoOrder (STOP_MARKET, closePosition: true)
+  ③ Take Profit (si aplica)     → BinanceCustomFuturesAlgoOrder (TAKE_PROFIT_MARKET, closePosition: true)
+  ④ Trailing Stop               → BinanceCustomFuturesAlgoOrder (TRAILING_STOP_MARKET, closePosition: true)
 
-  ① Stop Loss (Stop Market): $XX.XX
+Parámetros clave:
+  SHORT → SL por encima del pico | TP en zona de soporte | TS activación 3-5% bajo pico, callback 6%
+  LONG  → SL bajo mínimo de entrada | TS activación 5% sobre entrada en ganancia, callback 6%
 
-  ② Trailing Stop:
-     SHORT → Activación: [3-5% bajo el pico] | Callback: 6%
-     LONG  → Activación: [5% sobre la entrada cuando esté en ganancia] | Callback: 6%
+⚠️ Colocar SL/TP solo DESPUÉS que entre la primera orden (error -2022 si no hay posición).
+⚠️ En producción (Hedge Mode): positionSide LONG o SHORT obligatorio en todas las órdenes algo.
 ```
 
 → **Estructura completa SHORT y LONG con ejemplos: `docs/protocolo-operativo.md` Paso 2**
