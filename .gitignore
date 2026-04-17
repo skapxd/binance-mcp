@@ -59,3 +59,4 @@ config.json
 src/tools/binance-spot/a.sh
 a.sh
 src/tools/binance-spot/a.txt
+.claude/scheduled_tasks.lock
