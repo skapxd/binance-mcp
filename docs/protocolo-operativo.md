@@ -26,6 +26,41 @@
 
 **Cuándo:** cuando el usuario pide un escaneo o quiere evaluar un símbolo.
 
+---
+
+### 1a — Contexto macro PRIMERO (obligatorio antes de analizar cualquier moneda)
+
+Antes de ver candidatos individuales, Claude siempre reporta el estado de BTC y el mercado general. El contexto macro cambia el riesgo de cualquier trade.
+
+**Qué consultar:**
+- BTC: precio, cambio 24h, RSI 1h, tendencia de velas 4h (últimas 4), velas 15m (últimas 6)
+- ETH: cambio 24h como confirmación de sentimiento general
+- Dominancia implícita: si BTC y ETH suben → altcoins pueden pump más / si BTC cae → altcoins amplifican la bajada
+
+**Semáforo macro — cómo afecta a cada estrategia:**
+
+| Estado BTC | Impacto SHORT en altcoin pumpeada | Impacto LONG momentum |
+|---|---|---|
+| BTC lateral (±0.5% en 4h) | ✅ Neutral — el pump se sostiene o cae por su propia lógica | ⚠️ Longs dependen del catalizador propio |
+| BTC subiendo fuerte (+2%+ en 4h) | ⚠️ Riesgo: las altcoins pumpeadas pueden extenderse más. Esperar agotamiento claro antes de shortear | ✅ Favorable — el mercado está en risk-on |
+| BTC cayendo fuerte (-2%+ en 4h) | ✅ Favorable — la bajada de BTC acelera la caída de altcoins pumpeadas | ❌ No entrar long — BTC arrastra altcoins hacia abajo aunque tengan momentum propio |
+| BTC en corrección leve (-0.5% a -1.5%) | ✅ Puede confirmar el agotamiento del pump en altcoin | ⚠️ Los longs aguantan si el catalizador es fuerte, pero reducir tamaño |
+
+**Output del contexto macro (siempre al inicio del reporte):**
+
+```
+🌐 CONTEXTO MACRO
+  BTC: $XX,XXX | 24h: +X.X% | RSI 1h: XX | Tendencia 4h: [lateral / alcista / bajista]
+  ETH: $X,XXX  | 24h: +X.X%
+  Mercado general: [risk-on / lateral / risk-off]
+
+  → Impacto en análisis de hoy: [ej. "BTC lateral — pumps en altcoins se mueven por lógica propia. Favorable para shorts en sobreextendidos."]
+```
+
+---
+
+### 1b — Análisis de candidatos individuales
+
 **Qué hace Claude:**
 1. Obtener todos los tickers de futuros (`/fapi/v1/ticker/24hr`) + `exchangeInfo` en paralelo
 2. Cruzar ambos y filtrar solo `status=TRADING` — la API devuelve también contratos SETTLING que no aparecen en la UI del usuario
@@ -42,10 +77,50 @@
    - Orderbook ratio bid/ask
    - Klines 4h últimas 6 velas + klines 15m últimas 8 velas
    - Volumen por vela: ¿cayendo (agotamiento) o subiendo (momentum activo)?
+   - **Correlación con BTC en ese momento:** si BTC bajó mientras la altcoin subió → pump desacoplado (más fuerte/más riesgoso). Si subieron juntos → pump dependiente del mercado general.
 
-**Output esperado:** tabla clasificada. Claude presenta **mínimo 2 opciones de estrategia** y la opción "no operar".
+---
+
+### 1c — Análisis de moneda específica (cuando el usuario pregunta por una)
+
+Cuando el usuario pregunta "cómo ves X" o "analizá X", el reporte siempre tiene esta estructura:
 
 ```
+=== XXXUSDT — análisis ===
+
+🌐 Contexto macro ahora
+  BTC: $XX,XXX | tendencia 15m: [lateral/subiendo/bajando]
+  Impacto: [ej. "BTC lateral = el movimiento de XXXUSDT es por catalizador propio, no arrastre"]
+
+📊 Señales técnicas
+  Precio: $X.XX | 24h: +XX% | Pico: $X.XX | Dist desde pico: -X%
+  RSI 1h: XX [sobreextendido / neutral / oversold]
+  Funding: X.XXXX% | Historial: X→X→X→X [tendencia: positiva / negativa]
+  OB ratio: X.XX [compradores / vendedores dominan]
+  Volumen: [cayendo X% desde pico / creciendo / estable]
+
+🕯️ Estructura de velas
+  4h (últimas 5): [patrón — ej. "pump gradual, Tipo A" o "vela única, Tipo B"]
+  15m (últimas 8): [dirección actual — ej. "bajista confirmado" / "rebotando" / "sin dirección"]
+
+⚡ Conclusión
+  Setup: [✅ válido / ⚠️ señales mixtas / ❌ no operar]
+  Por qué: [razón concreta en 1-2 líneas]
+  Qué esperar: [escenario A y escenario B dependiendo del precio]
+  Alarma sugerida: $X.XX [condición para que se active el setup]
+```
+
+Este formato aplica tanto para análisis de oportunidades como para seguimiento de posiciones abiertas.
+
+---
+
+**Output del escaneo general:** tabla clasificada con contexto macro al inicio. Claude presenta **mínimo 2 opciones de estrategia** y la opción "no operar".
+
+```
+🌐 CONTEXTO MACRO
+  BTC: $XX,XXX | +X.X% | RSI: XX | Tendencia: lateral
+  → Impacto: BTC sin dirección — altcoins se mueven por catalizador propio hoy
+
 💰 Capital disponible: $XX USDT
 
 🔴 NO OPERAR ahora:
@@ -76,6 +151,18 @@ Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente y
 ```
 
 Esto aplica siempre que haya candidatos en radar pero sin señal de entrada inmediata.
+
+### 📐 Unidades de volumen — Claude vs UI de Binance
+
+Claude reporta volumen en **USDT** (quoteVolume). La UI de Binance muestra volumen en **cantidad de la moneda base** (ej. PIPPIN, ORDI, etc.).
+
+Conversión: `volumen en moneda = volumen USDT / precio actual`
+
+Ejemplo con PIPPIN a $0.0425:
+- Claude dice: "vela 2.76M" → en tu gráfico ves ~65M PIPPIN
+- Claude dice: "≥1.5M USDT" → en tu gráfico es ≥35M PIPPIN
+
+**Cuando Claude da umbrales de volumen para señales, siempre incluye el equivalente en coins** para que el usuario pueda leerlo directo en su gráfico sin calcular.
 
 ---
 
@@ -286,6 +373,39 @@ Exposición total: $300 USDT
 Precio de invalidación: X% por encima de la última entrada
 Pérdida máxima estimada: $XX USDT (XX% del capital)
 ```
+
+#### ⚡ Modo de entrada urgente — protocolo "urgente orden XXXUSDT"
+
+Cuando el usuario dice **"urgente orden XXXUSDT"** (o similar), Claude NO ejecuta ciegamente. Valida en el acto y decide:
+
+```
+Usuario: "urgente orden PIPPINUSDT"
+         ↓
+Claude: valida precio + RSI + última vela 15m (10 segundos)
+         ↓
+         ¿Confirma el análisis la urgencia?
+        /                          \
+      SÍ                            NO
+  (vela roja fuerte,            (pump sigue activo,
+   RSI >80, volumen             RSI <78, velas verdes)
+   cayendo en pico)                    ↓
+        ↓                     "No veo apuro — genero
+  MARKET inmediato             3 LIMIT escalonadas
+  + 2 LIMIT arriba             según estrategia"
+  para el spike
+```
+
+**Modo MARKET (urgente confirmado):**
+- Entrada 1: MARKET SHORT inmediata — 40% del capital
+- Entrada 2: SELL LIMIT pico +3% — 35% del capital
+- Entrada 3: SELL LIMIT pico +7% — 25% del capital
+
+**Modo LIMIT (sin apuro):**
+- Entrada 1: SELL LIMIT pico o +2% — 40%
+- Entrada 2: SELL LIMIT pico +5% — 35%
+- Entrada 3: SELL LIMIT pico +10% — 25%
+
+**Regla clave:** el usuario activa la alerta, Claude valida y decide el modo. Si el análisis de Claude contradice la urgencia del usuario → Claude lo dice explícitamente ("no veo apuro") y explica por qué antes de ejecutar las LIMIT. El usuario siempre puede insistir y Claude ejecuta MARKET igualmente si el usuario confirma.
 
 **Regla de entradas SHORT:** si hay múltiples entradas pendientes y se activa el SL o el TS, **cancelar inmediatamente las entradas no llenadas desde la UI**. Una entrada que se llena después de cerrar la posición abre una nueva exposición no controlada.
 

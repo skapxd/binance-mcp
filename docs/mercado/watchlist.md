@@ -1,7 +1,7 @@
 # Watchlist — Seguimiento Activo de Mercado
 
 > Archivo vivo. Se actualiza en cada sesión cuando hay cambios relevantes.
-> Última actualización: 2026-04-16
+> Última actualización: 2026-04-17
 > ⚠️ Los datos de precio/PNL de los bots son snapshots — refrescarlos con la API antes de tomar decisiones.
 
 ---
@@ -43,6 +43,24 @@ Distancia al stop: **23.1%** — bien alejado. Funding neutro. Bot trabajando co
 
 **Estado al 2026-04-15** — Precio: $1.387 | Posición en rango: **44.2%** (zona media ✅)
 Distancia al stop: **24.3%** — bien alejado. Funding neutro. Bot trabajando correctamente.
+
+---
+
+### ADAUSDT — Neutral 3x
+| Parámetro | Valor |
+|---|---|
+| Iniciado | 2026-04-17 |
+| Margen | 1,000 USDT (Isolated) |
+| Rango | $0.203 – $0.325 (amplitud 60.1%) |
+| Stop loss | $0.194 |
+| Grids | 60 — Geométrico |
+| Ganancia grid acum. | — (recién iniciado) |
+| PnL no realizado | — |
+| Trades ejecutados | — |
+
+**Estado al 2026-04-17** — Precio: $0.254 | Posición en rango: **41.6%** (zona media ✅)
+Distancia al stop: **23.6%** — bien alejado. Funding neutro +0.010%. Bot recién iniciado.
+Nota: Protocol 11 hard fork confirmado para junio 2026 — evaluar ajuste del bot en mayo si se acerca el evento.
 
 ---
 
