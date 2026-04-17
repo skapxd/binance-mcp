@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node \"d:\\\\PROGRAMACION\\\\binance bot\\\\binance-mcp\\\\build\\\\monitor-ordi.js\")",
+      "Bash(node \"d:\\\\PROGRAMACION\\\\binance bot\\\\binance-mcp\\\\build\\\\monitor-ordi.cjs\")"
+    ]
+  }
+}

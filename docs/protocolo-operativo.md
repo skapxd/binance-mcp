@@ -2,7 +2,7 @@
 
 > Este documento es la referencia operativa completa del sistema.
 > CLAUDE.md apunta aquí para todos los detalles de ejecución.
-> Última actualización: 2026-04-16
+> Última actualización: 2026-04-18
 
 ---
 
@@ -604,6 +604,52 @@ Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
 
 ---
 
+## Monitor automático — Script de seguimiento (loop)
+
+### Qué es
+
+`scripts/monitor.cjs` — script Node.js que consulta la API de Binance cada vez que se ejecuta y detecta señales de entrada o invalidación. Claude lo corre cada minuto via cron cuando el usuario pide monitoreo continuo.
+
+### Cómo activarlo
+
+El usuario dice: **"enciende loop XXXUSDT"** o **"monitorea XXXUSDT"**
+
+Claude crea un cron de 1 minuto con:
+```
+node "d:\PROGRAMACION\binance bot\binance-mcp\scripts\monitor.cjs"
+```
+
+Variables de entorno configurables (pasar antes del comando o editar defaults en el script):
+```
+SYMBOL=XXXUSDT RSI_MIN=35 VOL_MIN=5 PRICE_MIN=6.00 STOP=5.80 TP=6.70 SL=5.75
+```
+
+### ¿Pide confirmación?
+
+**No** — el path exacto está en `.claude/settings.json` bajo `permissions.allow`. Claude Code auto-permite ese comando sin pedir confirmación al usuario.
+
+Si el script da error de módulo (ES module vs CommonJS), usar siempre la extensión **`.cjs`**, no `.js`.
+
+### Condiciones que reporta
+
+| Salida | Significado | Acción |
+|---|---|---|
+| línea con datos | Sin señal — seguir esperando | Nada |
+| `🟢🟢 SEÑAL LONG` | Todas las condiciones cumplidas | Notificar al usuario urgente |
+| `🔴 INVALIDADO` | Precio rompió el stop | Notificar + cancelar cron |
+
+### Condiciones default (long rebote)
+1. RSI 15m cruza por encima de 35
+2. Última vela 15m cierra verde
+3. Volumen última vela > 5M USDT
+4. Precio sosteniendo por encima del PRICE_MIN
+
+### Cómo detenerlo
+
+Usuario dice: **"para el loop"** → Claude ejecuta `CronDelete <job_id>`.
+
+---
+
 ## Lecciones de ejecución registradas
 
 | Fecha | Lección |
@@ -615,3 +661,6 @@ Claude no ejecuta hasta que el usuario confirma que entendió ambas partes.
 | Abr 2026 | **Verificar siempre Isolated antes de ejecutar.** Cross expone todo el balance. |
 | Abr 2026 | **Precision error (-1111): usar cantidades enteras o con mínimos decimales.** Binance rechaza `16.600` — usar `17`. |
 | Abr 2026 | **Pump de vela única (PRLUSDT): LIMIT en el rebote nunca se llena.** Vela 4h +54% con 46M vs 1-2M promedio → colapso directo sin rebote. Estrategia: B1 (LIMIT en el pico con RSI >90) o B2 (MARKET en primera vela roja). Las entradas escalonadas por encima esperando rebote = capital inmovilizado, oportunidad perdida. |
+| Abr 2026 | **Long rebote válido: RSI 15m ≤ 22 + funding positivo + volumen real.** ORDIUSDT cayó -26% con 1900M vol, RSI 15m tocó 21, funding +0.005%. Señal de entrada: RSI 15m cruza 35 + vela verde con >5M vol. Resultado: +$7.34 en ~30 min. El script monitor-ordi.cjs detectó la señal automáticamente. |
+| Abr 2026 | **El script monitor.cjs usa extensión .cjs (no .js).** El proyecto tiene "type":"module" en package.json — los scripts CommonJS deben tener extensión .cjs o Node los rechaza con ReferenceError: require is not defined. |
+| Abr 2026 | **Stop Market en UI de Binance: usar "Stop Market" no "Stop Limit".** Stop Limit puede saltear la orden si el precio cae rápido. Stop Market se ejecuta al instante. Campo a llenar: solo "Precio Stop". Luego clic en "Cerrar long/largo". |
