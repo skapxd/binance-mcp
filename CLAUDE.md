@@ -66,9 +66,9 @@ Toma decisiones finales siempre él — Claude analiza, propone y ejecuta solo c
 
 | Par | Estado | Parámetros | Iniciado | Notas |
 |---|---|---|---|---|
-| SOLUSDT | ✅ Activo | Neutral 3x, rango $68–$110, 60 grids, stop $65, 1,000 USDT | 13 Abr 2026 | Precio en zona media del rango (~47%) |
-| XRPUSDT | ✅ Activo | Neutral 3x, rango $1.10–$1.75, 60 grids, stop $1.05, 1,000 USDT | 13 Abr 2026 | Precio en zona media del rango (~50%) |
-| ADAUSDT | ✅ Activo | Neutral 3x geométrico, rango $0.203–$0.325, 60 grids, stop $0.194, 1,000 USDT | 17 Abr 2026 | Precio en zona media (~42%). ⚠️ Hard fork Protocol 11 en junio — revisar en mayo. |
+| SOLUSDT | ✅ Activo | Neutral 3x, rango $68–$110, 60 grids, stop $65, 1,000 USDT | 13 Abr 2026 | $88.61 — 49.1% del rango. Stop +36% lejos. Funding neutro. |
+| XRPUSDT | ✅ Activo | Neutral 3x, rango $1.10–$1.75, 60 grids, stop $1.05, 1,000 USDT | 13 Abr 2026 | $1.483 — 58.9% del rango. Techo a -15.3% (~$1.75) — vigilar si supera $1.65. |
+| ADAUSDT | ✅ Activo | Neutral 3x geométrico, rango $0.203–$0.325, 60 grids, stop $0.194, 1,000 USDT | 17 Abr 2026 | $0.2581 — 45.2% del rango. Stop +33% lejos. ⚠️ Hard fork Protocol 11 en junio — revisar en mayo. |
 | BNBUSDT | ⛔ Cerrado | — | — | Rendimiento inferior. Capital reasignado a XRP y SOL. |
 
 ---
