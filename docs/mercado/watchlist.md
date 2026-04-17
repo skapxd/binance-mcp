@@ -1,7 +1,7 @@
 # Watchlist — Seguimiento Activo de Mercado
 
 > Archivo vivo. Se actualiza en cada sesión cuando hay cambios relevantes.
-> Última actualización: 2026-04-17
+> Última actualización: 2026-04-18
 > ⚠️ Los datos de precio/PNL de los bots son snapshots — refrescarlos con la API antes de tomar decisiones.
 
 ---
@@ -82,7 +82,11 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 
 | Par | Tipo | Detectado | Precio entrada est. | Estructura | Estado | Notas |
 |---|---|---|---|---|---|---|
+| PIPPINUSDT | Short pump | 2026-04-17 | $0.04201 avg | 2 entradas MARKET + 2 TPs ($0.030/$0.026) + SL | ⛔ Cerrado | Cierre manual $0.03508. **+~$44.86 USDT (+50% ROI)** sobre $89.72 margen. Pump +167% sin fundamento. Estrategia correcta aplicada. |
 | BIOUSDT | Short pump | 2026-04-15 | $0.0390 avg | 3 entradas SHORT LIMIT + 2 TPs + SL manual | ⛔ Cerrado con pérdida | Entrada $0.0392, cierre MARKET $0.0460. Pérdida: **-$40.80 USDT**. Causa: funding -0.82% ignorado → squeeze clásico. Ver lecciones. |
+| ORDIUSDT | Long rebote | 2026-04-18 | ~$6.00–$6.10 | BUY LIMIT + SL $5.70 + TP $6.80–$7.20 | 👁️ En radar | −26% 24h desde pico $10.76. RSI 15m en 21 (muy sobrevendido). Funding +0.005% ✅. Vol 1,901M. Esperar primera vela verde 15m con volumen tras RSI <25. Alarma: $5.85 ↓ rebote. |
+| SKLUSDT | Short pump | 2026-04-18 | ~$0.0090–$0.0098 | SHORT LIMIT escalonado + SL + TS | 👁️ En radar | +48% 24h, spike +54% desde mínimo. RSI 1h 85. Funding −0.371% ahora → VETO hasta que gire positivo (reset 16:00 UTC). Además capital insuficiente (<$1000 notional UI). Alarma: $0.0095 ↑ + verificar funding antes de entrar. |
+| MOVRUSDT | Short pump | 2026-04-18 | — | — | 👁️ En radar | +140% 24h pero funding −0.037% → vetado. Mejor momento ya pasó. Monitorear si funding gira positivo. |
 | LYNUSDT | Short pump | 2026-04-16 | — | — | 👁️ En radar | +35% 24h. Funding ✅ +0.05%. Pero RSI 43 (neutral) y pump solo 55% — no sobreextendido. Esperar rebote a zona $0.082–$0.087 con RSI >75 para evaluar entrada short. Fase 4-5 actual. |
 | GUAUSDT | Short pump | 2026-04-15 | $0.57–$0.62 | Short grid LIMIT + stop | 📋 Desactualizado | Re-analizar si el usuario lo solicita. |
 | TRADOORUSDT | Short pump | 2026-04-16 | $7.20–$7.60 | 2 entradas SHORT LIMIT + 2 TPs + SL manual | ❌ Descartado | Precio bajó a $6.23. Pump total solo 24% desde mínimos — lejos de las condiciones (≥80%). Sin setup. |
@@ -102,6 +106,8 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 | ETHUSDT | Grid Neutral 10x | +23.87 USDT, desarmado | ~14 Abr 2026 | Rango correcto, apalancamiento alto. ETH rompió al alza. |
 | ORDIUSDT | Short — 1er intento | ~-$0.07 USDT (pérdida mínima) | 16 Abr 2026 | Pump +182%. 2 entradas llenadas ($9.00 y $9.50), 3era pendiente ($10.00). TS activado en movimiento alcista antes de que entrara la 3era orden. TS correcto pero activación demasiado baja. |
 | ORDIUSDT | Short — 2do intento | **+$8.76 USDT** | 16 Abr 2026 | 1 entrada @ $9.20 (13 ORDI). Cierre TS @ $8.526. Entradas 2 y 3 canceladas manualmente antes del cierre. Protocolo SL + TS correcto aplicado. Ganancia neta confirmada por API. |
+| ORDIUSDT | Long rebote | **+$7.34 USDT** | 18 Abr 2026 | Entry $6.08 MARKET, cierre manual $6.32. RSI 15m en 21 + funding +0.005% + vol 1900M. Señal detectada por monitor-ordi.cjs. Limpio y rápido ~30 min. |
+| PIPPINUSDT | Short pump | **+$44.86 USDT (+50% ROI)** | 17 Abr 2026 | Entry avg $0.04201, cierre $0.03508. 2 entradas MARKET urgentes. TPs ajustados durante la operación. Estrategia limpia aplicada. |
 
 ---
 
@@ -137,5 +143,6 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 
 ## Pendientes próxima sesión
 
-- [ ] Re-analizar GUAUSDT en 24hs (RSI estaba en 11, posible rebote técnico)
+- [ ] MOVRUSDT: revisar si funding se vuelve positivo (ahora -0.047%, vetado). Si gira → analizar short.
 - [ ] Escaneo general de futuros cuando el usuario lo solicite
+- [ ] Re-analizar GUAUSDT si el usuario lo solicita
