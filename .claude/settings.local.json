@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(node \"d:\\\\PROGRAMACION\\\\binance bot\\\\binance-mcp\\\\build\\\\monitor-ordi.js\")",
-      "Bash(node \"d:\\\\PROGRAMACION\\\\binance bot\\\\binance-mcp\\\\build\\\\monitor-ordi.cjs\")"
+      "Bash(node \"d:\\\\PROGRAMACION\\\\binance bot\\\\binance-mcp\\\\build\\\\monitor-ordi.cjs\")",
+      "mcp__binance__BinanceCustomFuturesAnalyze"
     ]
   }
 }

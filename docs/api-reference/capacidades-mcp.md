@@ -1,7 +1,7 @@
 # Referencia: Capacidades del MCP
 
-> Última actualización: 2026-04-16
-> Validado en testnet con SDK `@binance/derivatives-trading-usds-futures`
+> Última actualización: 2026-04-17
+> Algo Order API (SL/TP/TS) validado en producción. SDK `@binance/derivatives-trading-usds-futures`.
 
 ---
 
