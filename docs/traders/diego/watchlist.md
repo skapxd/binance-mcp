@@ -27,22 +27,25 @@ Distancia al stop: **23.1%** — bien alejado. Funding neutro. Bot trabajando co
 
 ---
 
-### XRPUSDT — Neutral 3x
+### XRPUSDT — ⛔ Cerrado 2026-04-18
+Capital reasignado a DOGEUSDT. Resultado: **+$3 USDT** en 4 días. Cierre voluntario — contexto alcista XRP con ETF institucional hace el grid subóptimo a mediano plazo.
+
+---
+
+### DOGEUSDT — Neutral 3x
 | Parámetro | Valor |
 |---|---|
-| Iniciado | 2026-04-13 23:07 |
+| Iniciado | 2026-04-18 |
 | Margen | 1,000 USDT (Isolated) |
-| Rango | $1.10 – $1.75 (amplitud 59%) |
-| Stop loss | $1.05 |
-| Grids | 60 |
-| Por grid | 28.0 XRP |
-| Ganancia grid acum. | +1.55 USDT (+0.15%) |
-| PnL no realizado | −0.30 USDT |
-| Trades ejecutados | 7 |
-| Riesgo Binance | 2.1 — Low Risk |
+| Rango | $0.082 – $0.118 (amplitud 43.9%) |
+| Stop loss | $0.078 |
+| Grids | 60 — Geométrico |
+| Beneficio/grid | 0.56% |
+| Por grid | 397 DOGE |
+| Ganancia est. | ~$32/mes (~39% anual) |
 
-**Estado al 2026-04-15** — Precio: $1.387 | Posición en rango: **44.2%** (zona media ✅)
-Distancia al stop: **24.3%** — bien alejado. Funding neutro. Bot trabajando correctamente.
+**Estado al 2026-04-18** — Precio: $0.0987 | Posición en rango: **52%** ✅ centrado
+El activo más lateral del mercado (CV 2.75% en 30d). Rango cubre 100% del movimiento histórico reciente.
 
 ---
 
@@ -79,6 +82,10 @@ Capital reasignado a XRP y SOL por rendimiento inferior.
 ---
 
 ## En seguimiento — Oportunidades activas (Pilar 2)
+
+| Par | Tipo | Detectado | Precio entrada est. | Estructura | Estado | Notas |
+|---|---|---|---|---|---|---|
+| ALICEUSDT | Short pump | 2026-04-18 | ~$0.21–$0.22 en rebote | SELL MARKET $150 3x ISOLATED + SL +8% + TP1 -15% (50%) + TP2 -25% | ⏳ Esperando funding | Pump +114% desde $0.1225, pico $0.2632. RSI 65.9 normalizando. Vol agotado -68%. Funding -0.26% → VETO. Esperar reset 13:00 ARG (16:00 UTC). Estrategia: dejar rebotar a $0.21-$0.22 y entrar en vuelta bajista cuando funding sea positivo. |
 
 | Par | Tipo | Detectado | Precio entrada est. | Estructura | Estado | Notas |
 |---|---|---|---|---|---|---|
