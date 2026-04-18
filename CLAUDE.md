@@ -34,23 +34,23 @@ Si hay alertas activas (bot cerca de límite, funding negativo, posición abiert
 
 Este proyecto lo desarrollan **dos personas**, ambas desarrolladores y traders activos:
 
-- **Diego** — trading, estrategias, operaciones con capital real, decisiones finales
-- **Manuel** — infraestructura backend (AWS Lambda, crons), integraciones, también experimenta en trading
+- **Diego** — desarrollador y trader. Trading, estrategias, operaciones con capital real, decisiones finales.
+- **Manuel** — desarrollador y trader. Infraestructura backend (AWS Lambda, crons), integraciones, experimenta en trading al igual que Diego.
 
 Cualquiera de los dos puede abrir sesión y agregar pendientes. Claude debe tratar a ambos como pares técnicos.
 
 ### Pendientes entre sesiones — cómo funciona
 
 Los pendientes viven en dos archivos según quién los dejó:
-- Diego → Manuel: `docs/colaboracion/sync-diego.md`
-- Manuel → Diego: `docs/colaboracion/sync-manuel.md`
+- Diego → Manuel: `docs/colaboracion/sync-para-manuel.md`
+- Manuel → Diego: `docs/colaboracion/sync-para-diego.md`
 
 **Al inicio de CADA sesión** (junto con el estado de cuenta), Claude revisa ambos archivos buscando ítems `- [ ]` abiertos y los menciona:
 
 ```
 📋 PENDIENTES DE EQUIPO:
-   → Para vos (de Manuel): X ítems abiertos — docs/colaboracion/sync-manuel.md
-   → Para Manuel (de Diego): X ítems abiertos — docs/colaboracion/sync-diego.md
+   → Para vos (de Manuel): X ítems abiertos — docs/colaboracion/sync-para-diego.md
+   → Para Manuel (de Diego): X ítems abiertos — docs/colaboracion/sync-para-manuel.md
 ```
 
 Si no hay pendientes → no mencionar. Si hay → mostrar el link siempre, aunque el usuario haya preguntado otra cosa.
