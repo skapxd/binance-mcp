@@ -10,11 +10,11 @@
       "mcp__binance__BinanceCustomFuturesBotStatus",
       "mcp__binance__BinanceCustomFuturesAlgoOpenOrders"
 
-      // --- PERMISOS DE EJECUCIÓN (solo Ojo de Alcón) ---
+      // --- PERMISOS DE EJECUCIÓN (solo Ojo de Halcón) ---
       // Estos 3 permisos NO deben estar activos en modo normal.
-      // Claude los agrega automáticamente al activar Ojo de Alcón (Paso 0)
+      // Claude los agrega automáticamente al activar Ojo de Halcón (Paso 0)
       // y los remueve al finalizar la estrategia (Paso Final).
-      // Ver flujo completo: docs/estrategias/ojo-de-alcon.md
+      // Ver flujo completo: docs/estrategias/ojo-de-halcon.md
       // Ver regla en cerebro: CLAUDE.md → sección "Declarar entorno SIEMPRE"
       //
       // "mcp__binance__BinanceCustomFuturesNewOrder",

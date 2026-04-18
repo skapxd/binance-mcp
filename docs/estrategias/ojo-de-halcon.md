@@ -1,4 +1,4 @@
-# Ojo de Alcón — Estrategia de Ejecución Autónoma
+# Ojo de Halcón — Estrategia de Ejecución Autónoma
 
 > **También conocida como:** auto trade, AutoSniper
 >
@@ -104,15 +104,15 @@ El usuario define las condiciones de entrada antes de activar. A partir de ahí,
 
 ## Activación
 
-Para activar Ojo de Alcón en una sesión:
+Para activar Ojo de Halcón en una sesión:
 
 ```
-"Activá Ojo de Alcón en [SÍMBOLO] — estrategia [A/LONG] — capital $[X]"
+"Activá Ojo de Halcón en [SÍMBOLO] — estrategia [A/LONG] — capital $[X]"
 ```
 
 Claude crea el cron, define las condiciones y ejecuta autónomamente.
 No se necesita ninguna confirmación adicional hasta que Claude reporte el resultado.
 
-> **Nota operativa:** Cuando Ojo de Alcón está activo, el usuario NO está disponible.
+> **Nota operativa:** Cuando Ojo de Halcón está activo, el usuario NO está disponible.
 > Claude reporta cada paso aquí mismo (en el chat) pero NO hace preguntas ni espera respuesta.
 > Cualquier consulta bloquearía la estrategia por completo — está prohibido preguntar durante la ejecución.

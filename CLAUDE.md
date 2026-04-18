@@ -79,6 +79,18 @@ Si no hay pendientes → no mencionar. Si hay → mostrar el link siempre, aunqu
 - Sin TP fijo — Trailing Stop gestiona la salida para capturar el trend completo
 - Señales: volumen creciente confirmado, no sobreextensión de funding
 
+### 🦅 Ojo de Halcón — Ejecución autónoma de Pilar 2
+
+Modo de operación donde Claude monitorea, detecta el setup y ejecuta sin intervención del usuario.
+Activar con: `"Activá Ojo de Halcón en [SÍMBOLO] — estrategia [A/LONG] — capital $[X]"`
+
+- Claude agrega permisos de ejecución a `.claude/settings.jsonc` → usuario recarga Claude Code
+- Cron 5min (durable) vigila condiciones → al detectar setup escala a cron 30s → ejecuta MARKET + SL/TP/TS automáticos
+- Al finalizar: remueve permisos de ejecución y reporta resultado
+- **El usuario NO está disponible durante la ejecución — Claude no consulta nada**
+
+→ Flujo completo, parámetros y aprendizajes: `docs/estrategias/ojo-de-halcon.md`
+
 ---
 
 ## Bots activos actualmente
@@ -184,7 +196,7 @@ El entorno activo se controla desde `.mcp.json` con la variable `BINANCE_ENV`:
 La alerta de producción se muestra **siempre**, incluso si el usuario ya confirmó la estrategia.
 
 **Excepciones — NO pedir confirmación:**
-1. **Ojo de Alcón activo** — ejecución 100% autónoma, usuario no está disponible. Reportar cada paso en el chat pero jamás preguntar.
+1. **Ojo de Halcón activo** — ejecución 100% autónoma, usuario no está disponible. Reportar cada paso en el chat pero jamás preguntar.
 2. **Permiso explícito puntual** — el usuario dijo explícitamente "ejecutá sin preguntar" o "te delego la ejecución" para esa operación en esa sesión.
 
 ### Reglas de ejecución
