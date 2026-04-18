@@ -649,7 +649,7 @@ SYMBOL=XXXUSDT RSI_MIN=35 VOL_MIN=5 PRICE_MIN=6.00 STOP=5.80 TP=6.70 SL=5.75
 
 ### ¿Pide confirmación?
 
-**No** — el path exacto está en `.claude/settings.json` bajo `permissions.allow`. Claude Code auto-permite ese comando sin pedir confirmación al usuario.
+**No** — el path exacto está en `.claude/settings.jsonc` bajo `permissions.allow`. Claude Code auto-permite ese comando sin pedir confirmación al usuario.
 
 Si el script da error de módulo (ES module vs CommonJS), usar siempre la extensión **`.cjs`**, no `.js`.
 

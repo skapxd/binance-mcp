@@ -1,0 +1,25 @@
+{
+  "enabledMcpjsonServers": ["binance"],
+  "permissions": {
+    "allow": [
+      "Bash(node \"d:\\PROGRAMACION\\binance bot\\binance-mcp\\scripts\\monitor.cjs\"*)",
+
+      // --- PERMISOS DE SOLO LECTURA (siempre activos) ---
+      "mcp__binance__BinanceCustomFuturesAnalyze",
+      "mcp__binance__BinanceCustomFuturesAccount",
+      "mcp__binance__BinanceCustomFuturesBotStatus",
+      "mcp__binance__BinanceCustomFuturesAlgoOpenOrders"
+
+      // --- PERMISOS DE EJECUCIÓN (solo Ojo de Alcón) ---
+      // Estos 3 permisos NO deben estar activos en modo normal.
+      // Claude los agrega automáticamente al activar Ojo de Alcón (Paso 0)
+      // y los remueve al finalizar la estrategia (Paso Final).
+      // Ver flujo completo: docs/estrategias/ojo-de-alcon.md
+      // Ver regla en cerebro: CLAUDE.md → sección "Declarar entorno SIEMPRE"
+      //
+      // "mcp__binance__BinanceCustomFuturesNewOrder",
+      // "mcp__binance__BinanceCustomFuturesAlgoOrder",
+      // "mcp__binance__BinanceCustomFuturesCancelAlgoOrder"
+    ]
+  }
+}
