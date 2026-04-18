@@ -20,7 +20,13 @@ El usuario define las condiciones de entrada antes de activar. A partir de ahí,
 ## Arquitectura del ciclo
 
 ```
-[PASO 0 — ACTIVACIÓN]
+[PASO 0 — PRE-ACTIVACIÓN OBLIGATORIA]
+  Usuario ejecuta /compact en Claude Code ANTES de confirmar la activación.
+  → Libera contexto para que Ojo de Halcón opere sin riesgo de compactación
+     automática en medio de la ejecución.
+  → Claude no procede con la activación hasta que el usuario confirme que hizo /compact.
+
+[PASO 1 — ACTIVACIÓN]
   Claude edita .claude/settings.jsonc
   → Agrega al allow: BinanceCustomFuturesNewOrder,
                      BinanceCustomFuturesAlgoOrder,
