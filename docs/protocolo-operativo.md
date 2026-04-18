@@ -152,6 +152,22 @@ Claude NO elige por el usuario. Si no hay setup válido → decirlo claramente y
 
 Esto aplica siempre que haya candidatos en radar pero sin señal de entrada inmediata.
 
+### 🕐 Temporalidades — siempre especificar en cada dato
+
+Claude siempre aclara la temporalidad junto al dato. Nunca decir "RSI alto" o "velas rojas" sin la vela de referencia.
+
+| Dato | Temporalidad usada | Por qué |
+|---|---|---|
+| RSI | **1h** | Es lo que devuelve `BinanceCustomFuturesAnalyze`. Captura el momentum relevante sin ruido de 1m. |
+| Velas de análisis | **4h** | Para leer la fase del pump (Tipo A/B, agotamiento, estructura macro). |
+| Velas de entrada | **15m** | Para confirmar reversión antes de ejecutar. |
+| Volumen de confirmación | **15m** | Comparar las últimas 4-6 velas 15m para detectar spike o caída. |
+
+Ejemplo correcto: *"RSI 1h <45 + 2 velas 15m verdes con volumen creciente → long rebote"*
+Ejemplo incorrecto: *"RSI bajo y velas verdes con volumen"* ← temporalidad omitida, no operable.
+
+---
+
 ### 📐 Unidades de volumen — Claude vs UI de Binance
 
 Claude reporta volumen en **USDT** (quoteVolume). La UI de Binance muestra volumen en **cantidad de la moneda base** (ej. PIPPIN, ORDI, etc.).
@@ -221,6 +237,9 @@ No entrar solo porque el precio baja un poco. Confirmación requiere **al menos 
 3. **Precio rompe un soporte claro** — mínimo de la última hora o zona de consolidación previa
 
 Una sola vela roja no es confirmación. El usuario apurado siguiendo el precio = señal de esperar.
+
+**Señal adicional: mecha larga en el pico (lección ENAUSDT — abr 2026)**
+Si el pico de la vela muestra una mecha larga (precio llegó arriba y rechazó rápido sin cierre alto) → liquidación de longs confirmada. Es la señal más clara de agotamiento. En ese caso el Camino B2 (MARKET en la primera vela roja) es más efectivo que esperar LIMIT en el rebote — el rebote generalmente no llega al precio de la mecha.
 
 ### ✅ Checklist de ENTRADA para longs con momentum
 
@@ -353,17 +372,21 @@ Exposición total: $300 USDT
 
   ⚠️ No colocar TPs antes de tener posición abierta → error -2022 en Hedge Mode.
 
-── PROTECCIONES MANUALES (UI de Binance — configurar INMEDIATAMENTE después de las entradas) ──
-  ① Stop Loss (Stop Market):
+── PROTECCIONES AUTOMÁTICAS (Claude las coloca via BinanceCustomFuturesAlgoOrder) ──
+  ① Stop Loss (STOP_MARKET, closePosition: true):
      Precio: 8-10% por encima de la última entrada
-     Tipo: Stop Market (no Stop Limit — en pumps volátiles puede no llenarse)
+     Tipo: STOP_MARKET (no STOP — en pumps volátiles puede no llenarse)
 
-  ② Trailing Stop:
+  ② Trailing Stop (TRAILING_STOP_MARKET, closePosition: true):
      Activación: 3-5% POR DEBAJO del pico del pump
                  NO en el precio de entrada (lección ORDI — cierra antes de tiempo)
      Callback: 6-8%
-     Cuándo activar: después de confirmar que todas las entradas posibles ya llenaron
-                     o pasaron 30 minutos desde la ejecución
+     Cuándo activar: después de confirmar que la primera entrada llenó
+                     ⚠️ error -2022 si no hay posición abierta al colocar
+
+  ③ Take Profit (TAKE_PROFIT_MARKET, closePosition: true):
+     TP1: precio pico −25% → cerrar 50% (quantity: mitad de la posición)
+     TP2: precio pico −40% → cerrar resto (closePosition: true)
 
   Lógica combinada:
   - Si precio sube después de entrar → SL cierra (pérdida limitada)

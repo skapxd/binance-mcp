@@ -30,11 +30,30 @@ Si hay alertas activas (bot cerca de límite, funding negativo, posición abiert
 
 ---
 
-## Quién es el usuario
+## El equipo
 
-Trader conservador con experiencia en grid bots de futuros en Binance.
-Delega el análisis técnico y la estructuración de estrategias a Claude.
-Toma decisiones finales siempre él — Claude analiza, propone y ejecuta solo con confirmación explícita.
+Este proyecto lo desarrollan **dos personas**, ambas desarrolladores y traders activos:
+
+- **Diego** — trading, estrategias, operaciones con capital real, decisiones finales
+- **Manuel** — infraestructura backend (AWS Lambda, crons), integraciones, también experimenta en trading
+
+Cualquiera de los dos puede abrir sesión y agregar pendientes. Claude debe tratar a ambos como pares técnicos.
+
+### Pendientes entre sesiones — cómo funciona
+
+Los pendientes viven en dos archivos según quién los dejó:
+- Diego → Manuel: `docs/colaboracion/sync-diego.md`
+- Manuel → Diego: `docs/colaboracion/sync-manuel.md`
+
+**Al inicio de CADA sesión** (junto con el estado de cuenta), Claude revisa ambos archivos buscando ítems `- [ ]` abiertos y los menciona:
+
+```
+📋 PENDIENTES DE EQUIPO:
+   → Para vos (de Manuel): X ítems abiertos — docs/colaboracion/sync-manuel.md
+   → Para Manuel (de Diego): X ítems abiertos — docs/colaboracion/sync-diego.md
+```
+
+Si no hay pendientes → no mencionar. Si hay → mostrar el link siempre, aunque el usuario haya preguntado otra cosa.
 
 ---
 

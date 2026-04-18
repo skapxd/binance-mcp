@@ -67,22 +67,24 @@ export function registerBinanceFuturesAnalyze(server: McpServer) {
                 const asks = ob.asks.reduce((s: number, a: any) => s + parseFloat(a[1]), 0);
                 const obRatio = (bids / asks).toFixed(2);
 
-                // Volume trend 4h
-                const vols4h = k4h.map((k: any) => parseFloat(k[7]));
+                // Volume trend 4h (base asset volume = coins, matches Binance UI)
+                const vols4h = k4h.map((k: any) => parseFloat(k[5]));
                 const peakVol4h = Math.max(...vols4h.slice(0, -1));
                 const lastVol4h = vols4h[vols4h.length - 1];
                 const volDrop = ((peakVol4h - lastVol4h) / peakVol4h * 100).toFixed(0);
 
+                const fmtVol = (v: number) => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : v.toFixed(0);
+
                 // 4h candles (last 5)
                 const candles4h = k4h.slice(-5).map((k: any) => {
-                    const o = parseFloat(k[1]), c = parseFloat(k[4]), v = parseFloat(k[7]);
-                    return `${c > o ? "🟢" : "🔴"}(${((c - o) / o * 100).toFixed(1)}%) v:${(v / 1e6).toFixed(1)}M`;
+                    const o = parseFloat(k[1]), c = parseFloat(k[4]), v = parseFloat(k[5]);
+                    return `${c > o ? "🟢" : "🔴"}(${((c - o) / o * 100).toFixed(1)}%) v:${fmtVol(v)}`;
                 }).join("  ");
 
                 // 15m candles (last 6)
                 const candles15m = k15m.map((k: any) => {
-                    const o = parseFloat(k[1]), c = parseFloat(k[4]), v = parseFloat(k[7]);
-                    return `${c > o ? "🟢" : "🔴"}(${((c - o) / o * 100).toFixed(1)}%) v:${(v / 1e6).toFixed(1)}M`;
+                    const o = parseFloat(k[1]), c = parseFloat(k[4]), v = parseFloat(k[5]);
+                    return `${c > o ? "🟢" : "🔴"}(${((c - o) / o * 100).toFixed(1)}%) v:${fmtVol(v)}`;
                 }).join("  ");
 
                 // Funding semaphore interpretation
