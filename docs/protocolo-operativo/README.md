@@ -50,7 +50,7 @@
 | Limitación | Impacto | Workaround |
 |---|---|---|
 | STOP_MARKET/TP/TS bloqueados en endpoint clásico (`/fapi/v1/order`, error -4120) | No se pueden usar con `BinanceCustomFuturesNewOrder` | Usar `BinanceCustomFuturesAlgoOrder` → `/fapi/v1/algoOrder` ✅ funciona |
-| Grids de futuros no disponibles via API | No crear grids desde Claude | Crear desde UI de Binance |
+| Grids de futuros no disponibles via API | No crear grids desde Claude | Crear desde UI de Binance. Verificado: endpoint `/sapi/v1/algo/futures/newOrderGrid` da 404 — Binance no lo expone públicamente. `BinanceCreateFutureGrid` existe en el MCP pero está roto. |
 | Hedge Mode en cuenta real | Todas las órdenes requieren `positionSide` | Siempre incluir LONG/SHORT |
 | Testnet en One-way Mode | Scripts deben adaptarse | No enviar `positionSide` en testnet |
 | TP en Hedge Mode | No se puede colocar antes de tener posición | Colocar TP/SL/TS solo después de la primera entrada |
