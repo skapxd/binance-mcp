@@ -1,8 +1,0 @@
-{
-  "enabledMcpjsonServers": ["binance"],
-  "permissions": {
-    "allow": [
-      "Bash(node \"d:\\PROGRAMACION\\binance bot\\binance-mcp\\scripts\\monitor.cjs\"*)"
-    ]
-  }
-}

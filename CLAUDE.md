@@ -183,6 +183,10 @@ El entorno activo se controla desde `.mcp.json` con la variable `BINANCE_ENV`:
 
 La alerta de producción se muestra **siempre**, incluso si el usuario ya confirmó la estrategia.
 
+**Excepciones — NO pedir confirmación:**
+1. **Ojo de Alcón activo** — ejecución 100% autónoma, usuario no está disponible. Reportar cada paso en el chat pero jamás preguntar.
+2. **Permiso explícito puntual** — el usuario dijo explícitamente "ejecutá sin preguntar" o "te delego la ejecución" para esa operación en esa sesión.
+
 ### Reglas de ejecución
 
 - Siempre mostrar la estructura completa (Claude ejecuta / usuario hace manualmente) antes de ejecutar
