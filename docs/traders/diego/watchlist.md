@@ -12,40 +12,13 @@
 | Parámetro | Valor |
 |---|---|
 | Iniciado | 2026-04-13 23:25 |
-| Margen | 1,000 USDT (Isolated) |
+| Margen | **1,500 USDT** (Isolated) — aumentado 2026-04-18 |
 | Rango | $68.00 – $110.00 (amplitud 61.7%) |
 | Stop loss | $65.00 |
-| Grids | 60 |
-| Por grid | 0.45 SOL |
-| Ganancia grid acum. | +2.31 USDT (+0.23%) |
-| PnL no realizado | −0.26 USDT |
-| Trades ejecutados | 10 |
-| Riesgo Binance | 2.2 — Low Risk |
-
-**Estado al 2026-04-15** — Precio: $84.53 | Posición en rango: **39.4%** (zona media-baja ✅)
-Distancia al stop: **23.1%** — bien alejado. Funding neutro. Bot trabajando correctamente.
-
----
-
-### XRPUSDT — ⛔ Cerrado 2026-04-18
-Capital reasignado a DOGEUSDT. Resultado: **+$3 USDT** en 4 días. Cierre voluntario — contexto alcista XRP con ETF institucional hace el grid subóptimo a mediano plazo.
-
----
-
-### DOGEUSDT — Neutral 3x
-| Parámetro | Valor |
-|---|---|
-| Iniciado | 2026-04-18 |
-| Margen | 1,000 USDT (Isolated) |
-| Rango | $0.082 – $0.118 (amplitud 43.9%) |
-| Stop loss | $0.078 |
 | Grids | 60 — Geométrico |
-| Beneficio/grid | 0.56% |
-| Por grid | 397 DOGE |
-| Ganancia est. | ~$32/mes (~39% anual) |
+| Ganancia/trade | ~$0.28–$0.30 |
 
-**Estado al 2026-04-18** — Precio: $0.0987 | Posición en rango: **52%** ✅ centrado
-El activo más lateral del mercado (CV 2.75% en 30d). Rango cubre 100% del movimiento histórico reciente.
+**Estado al 2026-04-18** — Bot operando correctamente. Capital aumentado de $1,000 → $1,500 al cerrar DOGE.
 
 ---
 
@@ -53,17 +26,26 @@ El activo más lateral del mercado (CV 2.75% en 30d). Rango cubre 100% del movim
 | Parámetro | Valor |
 |---|---|
 | Iniciado | 2026-04-17 |
-| Margen | 1,000 USDT (Isolated) |
+| Margen | **1,500 USDT** (Isolated) — aumentado 2026-04-18 |
 | Rango | $0.203 – $0.325 (amplitud 60.1%) |
 | Stop loss | $0.194 |
 | Grids | 60 — Geométrico |
-| Ganancia grid acum. | — (recién iniciado) |
-| PnL no realizado | — |
-| Trades ejecutados | — |
+| Ganancia/trade | ~$0.29 USDT |
 
-**Estado al 2026-04-17** — Precio: $0.254 | Posición en rango: **41.6%** (zona media ✅)
-Distancia al stop: **23.6%** — bien alejado. Funding neutro +0.010%. Bot recién iniciado.
-Nota: Protocol 11 hard fork confirmado para junio 2026 — evaluar ajuste del bot en mayo si se acerca el evento.
+**Estado al 2026-04-18** — Bot operando. Capital aumentado de $1,000 → $1,500 al cerrar DOGE.
+⚠️ Protocol 11 hard fork confirmado para junio 2026 — revisar en mayo.
+
+---
+
+### DOGEUSDT — ⛔ Cerrado 2026-04-18
+Resultado: **+$0.21 USDT** en 7.5 horas. Cerrado voluntariamente.
+Motivo: ganancia por trade ($0.21) muy inferior a SOL/ADA ($0.28-0.30). Solo 1 trade en 7.5h — demasiado lateral para generar ciclos suficientes. Rendimiento anual Binance: 23.74% vs ~39% estimado.
+Capital ($1,000) → $500 a SOL + $500 a ADA.
+
+---
+
+### XRPUSDT — ⛔ Cerrado 2026-04-18
+Resultado: **+$3 USDT** en 4 días. Cierre voluntario — contexto alcista XRP con ETF institucional hace el grid subóptimo. Capital → DOGE (luego redistribuido a SOL/ADA).
 
 ---
 

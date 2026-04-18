@@ -2,7 +2,7 @@
 
 Este archivo es leído automáticamente al inicio de cada sesión.
 Contiene el contexto esencial y los punteros a la documentación detallada.
-**Los detalles operativos completos viven en `docs/protocolo-operativo.md`.**
+**Los detalles operativos completos viven en `docs/protocolo-operativo/README.md`.**
 
 ---
 
@@ -70,7 +70,7 @@ Si no hay pendientes → no mencionar. Si hay → mostrar el link siempre, aunqu
 **A) Shorts en monedas pumpeadas**
 - Pumps 100-300%+ sin fundamento | horizonte 1-1.5 días máximo
 - Entradas SELL LIMIT escalonadas por encima del precio actual (esperando spike)
-- TP fijo + Trailing Stop como salida → ver estructura completa en `docs/protocolo-operativo.md`
+- TP fijo + Trailing Stop como salida → ver estructura completa en `docs/protocolo-operativo/03-estrategias.md`
 - Señales: RSI > 85, volumen cayendo en pico, **funding positivo** (crítico)
 
 **B) Longs en altcoins con momentum**
@@ -158,10 +158,10 @@ Siempre dar precio exacto de alarma, no rangos. El usuario la pone en la app y m
 
 **Verificar mínimo notional antes de proponer:** el mínimo de Binance Futures es ~$5 notional por orden. Con $100 a 3x no hay problema en condiciones normales.
 
-→ **Detalle completo de análisis y checklists: `docs/protocolo-operativo.md` Paso 1**
+→ **Detalle completo de análisis y checklists: `docs/protocolo-operativo/01-analisis.md`**
 
 ### Protocolo operativo completo
-Antes de cualquier ejecución con capital real, seguir el flujo de 5 pasos en `docs/protocolo-operativo.md`:
+Antes de cualquier ejecución con capital real, seguir el flujo de 5 pasos en `docs/protocolo-operativo/README.md`:
 1. Análisis → 2. Diseño de estrategia (SHORT o LONG — estructuras diferentes) → 3. Testnet → 4. Revisión → 5. Ejecución
 
 ---
@@ -229,7 +229,7 @@ Parámetros clave:
 ⚠️ En producción (Hedge Mode): positionSide LONG o SHORT obligatorio en todas las órdenes algo.
 ```
 
-→ **Estructura completa SHORT y LONG con ejemplos: `docs/protocolo-operativo.md` Paso 2**
+→ **Estructura completa SHORT y LONG con ejemplos: `docs/protocolo-operativo/03-estrategias.md`**
 
 ---
 
@@ -270,7 +270,13 @@ Parámetros clave:
 /
 ├── CLAUDE.md                              ← Este archivo — contexto y reglas esenciales
 ├── docs/
-│   ├── protocolo-operativo.md             ← Flujo completo, estructuras SHORT/LONG, checklists
+│   ├── protocolo-operativo/               ← Flujo completo, estructuras SHORT/LONG, checklists
+│   │   ├── README.md                      ← Índice + 5 pasos + limitaciones
+│   │   ├── 01-analisis.md                 ← Macro, candidatos, fases pump, checklists
+│   │   ├── 02-funding.md                  ← Semáforo + regla contextual 5 filtros
+│   │   ├── 03-estrategias.md              ← SHORT (Tipo A/B) y LONG completo
+│   │   ├── 04-ejecucion.md                ← Testnet, revisión final, producción, monitor
+│   │   └── lecciones.md                   ← Todas las lecciones por tema
 │   ├── estrategias/
 │   │   ├── ojo-de-halcon.md               ← Estrategia autónoma Ojo de Halcón
 │   │   ├── estrategias-limit-orders.md
