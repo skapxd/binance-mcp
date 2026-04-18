@@ -258,7 +258,7 @@ Parámetros clave:
 1. **Nunca ejecutar sin confirmación explícita del usuario**
 2. **Análisis antes que ejecución** — siempre RSI, MACD, funding y ATR antes de proponer
 3. **Documentar todo** — cada estrategia, aprendizaje y cambio va a `docs/`
-4. **Watchlist viva** — actualizar `docs/mercado/watchlist.md` en cada sesión con cambios relevantes
+4. **Watchlist viva** — actualizar `docs/traders/[trader]/watchlist.md` en cada sesión. Preguntar quién opera si no hay contexto.
 5. **Capital conservador** — Pilar 1 es la base; Pilar 2 es oportunista con capital limitado
 6. **Stop en grids** — no usar stop automático; cerrar con orden límite cuando el precio aún está en rango
 
@@ -271,12 +271,21 @@ Parámetros clave:
 ├── CLAUDE.md                              ← Este archivo — contexto y reglas esenciales
 ├── docs/
 │   ├── protocolo-operativo.md             ← Flujo completo, estructuras SHORT/LONG, checklists
-│   ├── mercado/
-│   │   └── watchlist.md                   ← Monedas en seguimiento activo
 │   ├── estrategias/
+│   │   ├── ojo-de-halcon.md               ← Estrategia autónoma Ojo de Halcón
 │   │   ├── estrategias-limit-orders.md
 │   │   ├── grid-futuros-conservador.md
 │   │   └── ...
-│   └── api-reference/
-│       └── capacidades-mcp.md             ← Qué funciona y qué no en la API
+│   ├── api-reference/
+│   │   └── capacidades-mcp.md             ← Qué funciona y qué no en la API
+│   ├── colaboracion/
+│   │   ├── sync-para-diego.md             ← Canal Manuel → Diego
+│   │   └── sync-para-manuel.md            ← Canal Diego → Manuel
+│   └── traders/
+│       ├── diego/
+│       │   ├── perfil.md                  ← Zona horaria, capital, estilo (ARG GMT-3)
+│       │   └── watchlist.md               ← Bots activos + oportunidades de Diego
+│       └── manuel/
+│           ├── perfil.md                  ← Zona horaria, rol infra (COL GMT-5)
+│           └── watchlist.md               ← (a crear cuando opere)
 ```
