@@ -91,6 +91,18 @@ Activar con: `"Activá Ojo de Halcón en [SÍMBOLO] — estrategia [A/LONG] — 
 
 → Flujo completo, parámetros y aprendizajes: `docs/estrategias/ojo-de-halcon.md`
 
+### 🐦 Colibrí — Scalping autónomo en lateralización
+
+Múltiples trades pequeños en pares laterales. Alta frecuencia, capital limitado, salida rápida vía Trailing Stop.
+Activar con: `"Activá Colibrí en [SÍMBOLO] — capital $20 — leverage 10x — dirección [LONG/SHORT/ambas]"`
+
+- Requiere análisis conjunto previo (par, lateralización confirmada, sin macro events)
+- Entrada LIMIT 0.1% a favor — si no llena en 30s → cancelar y reevaluar
+- SL 0.5% + Trailing Stop callback 0.5% — sin TP fijo
+- Máximo 5 trades por sesión | $20 × 10x por trade | solo pares líquidos
+
+→ Flujo completo y parámetros: `docs/estrategias/colibri.md`
+
 ---
 
 ## Bots activos — por trader
