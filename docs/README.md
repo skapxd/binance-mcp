@@ -13,6 +13,7 @@ permitiendo consultar datos, analizar mercados y ejecutar órdenes desde una con
     ├── protocolo-operativo.md             ← Flujo completo: análisis → testnet → producción ⭐
     ├── estrategias/
     │   ├── ojo-de-halcon.md               ← Estrategia autónoma de ejecución sin intervención
+    │   ├── colibri.md                     ← Scalping autónomo en lateralización (10-15x, $20/trade)
     │   ├── estrategias-limit-orders.md    ← Tipos de órdenes disponibles y estrategias
     │   ├── grid-futuros-conservador.md    ← Estrategia base Pilar 1
     │   ├── twap-acumulacion-grid.md       ← Adaptación TWAP → LIMIT orders
